@@ -13,9 +13,9 @@ homology models. The application uses reference data from the
 
 # Overview of DME
 
-
-![dme overview](https://github.com/raphenya/dme/blob/main/docs/images/DME.png?raw=true)
-
+<p align="center" width="100%">
+    <img width="33%" src="https://github.com/raphenya/dme/blob/main/docs/images/DME.png?raw=true">
+</p>
 
 If DNA sequences are submitted, DME first predicts complete open reading frames (ORFs) using 
 [Prodigal](https://github.com/hyattpd/Prodigal) (ignoring those less than 30 bp) and analyzes 
