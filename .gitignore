@@ -1,0 +1,26 @@
+# general things to ignore
+build/
+dist/
+*.egg-info/
+*.egg
+*.py[cod]
+__pycache__/
+*.so
+*~
+
+# testing files
+test_env/
+build-install.sh
+BUILD.md
+CODE.md
+run-test.sh
+*.log
+hmdm.json
+localDB/
+
+# twine
+.pypirc
+
+# due to using tox and pytest
+.tox
+.cache

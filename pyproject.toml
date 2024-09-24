@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dme"
+description = "DME predicts bacterial drug-metabolizing genes in the draft and complete genomes."
+version = "1.0.0"
+
+dependencies = [
+  "joblib",
+  "biopython",
+  "filetype",
+  "pyfaidx",
+  "beautifulsoup4",
+  "pyahocorasick",
+  "requests",
+  "lxml",
+  "seaborn",
+  "pandas",
+  "matplotlib",
+  "pysam",
+  "seguid"
+]
+
+[external]
+dependencies = [
+  "prodigal @ git+https://github.com/hyattpd/Prodigal/archive/refs/tags/v2.6.3.tar.gz",
+  "diamond @ git+https://github.com/bbuchfink/diamond/archive/refs/tags/v0.8.36.tar.gz",
+]
+
+authors = [
+  { name="Amogelang R. Raphenya", email="raphenar@mcmaster.ca" },
+]
+maintainers = [
+  {name = "Amogelang R. Raphenya", email = "raphenar@mcmaster.ca"}
+]
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+keywords = ["bacterial drug metabolism", "gene prediction", "dme", "enzyme"]
+
+[project.scripts]
+dme = "dme:dme.main"
+
+[project.urls]
+Homepage = "https://github.com/raphenya/dme"
+Issues = "https://github.com/raphenya/dme/issues"

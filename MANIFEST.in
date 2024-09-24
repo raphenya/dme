@@ -1,0 +1,10 @@
+recursive-include src dme _data *
+recursive-include src dme _db *
+recursive-include src *.py
+recursive-include tests *.py
+include LICENSE.txt
+include MANIFEST.in
+include pyproject.toml
+include README.md
+include tox.ini
+
