@@ -1,7 +1,7 @@
 from dme.settings import *
-from dme.RGI import RGI
+from dme.DMECore import DMECore
 import argparse
-from dme.ConvertRGIJsonToTSV import ConvertJsonToTSV
+from dme.ConvertJsonToTSV import ConvertJsonToTSV
 from dme.Galaxy import Galaxy
 import dme.Parser
 import dme.load
@@ -108,8 +108,8 @@ class MainBase(object):
         return parser
 
     def main_run(self, args):
-        rgi_obj = RGI(**vars(args))
-        rgi_obj.run()
+        dme_obj = DMECore(**vars(args))
+        dme_obj.run()
 
     def tab(self):
         parser = self.tab_args()

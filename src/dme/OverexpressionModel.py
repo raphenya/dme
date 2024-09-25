@@ -1,4 +1,4 @@
-from dme.Base import BaseModel
+from dme.DMEBase import BaseModel
 from dme.settings import *
 
 class Overexpression(BaseModel):

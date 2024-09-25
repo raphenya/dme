@@ -16,6 +16,7 @@ CODE.md
 run-test.sh
 *.log
 hmdm.json
+strainsdb.fsa
 localDB/
 
 # twine

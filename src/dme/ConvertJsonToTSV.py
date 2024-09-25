@@ -156,14 +156,14 @@ class ConvertJsonToTSV(object):
                                  "Strain_Indentites"])
 
                 if os.path.isfile(self.filepath):
-                    with open(self.filepath) as rgi_file:
-                        rgi_data = json.load(rgi_file)
+                    with open(self.filepath) as dme_file:
+                        dme_data = json.load(dme_file)
                     try:
-                        del rgi_data["_metadata"]
+                        del dme_data["_metadata"]
                     except:
                         pass
 
-                    for hsp in rgi_data:
+                    for hsp in dme_data:
                         order_perfect = []
                         order_loose = []
                         order_strict = []
@@ -182,20 +182,20 @@ class ConvertJsonToTSV(object):
                         orf_dna_sequence_possible = ""
                         orf_prot_sequence_possible = ""
 
-                        for hit in rgi_data[hsp]:
-                            if rgi_data[hsp][hit]["type_match"] == "Perfect":
+                        for hit in dme_data[hsp]:
+                            if dme_data[hsp][hit]["type_match"] == "Perfect":
                                 order_perfect.append((
-                                    hit, rgi_data[hsp][hit]["bit_score"], rgi_data[hsp][hit]["perc_identity"]
+                                    hit, dme_data[hsp][hit]["bit_score"], dme_data[hsp][hit]["perc_identity"]
                                 ))
 
-                            if rgi_data[hsp][hit]["type_match"] == "Strict":
+                            if dme_data[hsp][hit]["type_match"] == "Strict":
                                 order_strict.append((
-                                    hit, rgi_data[hsp][hit]["bit_score"], rgi_data[hsp][hit]["perc_identity"]
+                                    hit, dme_data[hsp][hit]["bit_score"], dme_data[hsp][hit]["perc_identity"]
                                 ))
 
-                            if rgi_data[hsp][hit]["type_match"] == "Loose":
+                            if dme_data[hsp][hit]["type_match"] == "Loose":
                                 order_loose.append((
-                                    hit, rgi_data[hsp][hit]["bit_score"], rgi_data[hsp][hit]["perc_identity"]
+                                    hit, dme_data[hsp][hit]["bit_score"], dme_data[hsp][hit]["perc_identity"]
                                 ))
 
                         ordered = []
@@ -212,62 +212,62 @@ class ConvertJsonToTSV(object):
 
                         ordered = [i for i in ordered]
 
-                        if "orf_dna_sequence" in rgi_data[hsp][ordered[0]]:
+                        if "orf_dna_sequence" in dme_data[hsp][ordered[0]]:
                             dna = 1
-                        if "HMDM_category" in rgi_data[hsp][ordered[0]]:
-                            for aroctkey in rgi_data[hsp][hit]["HMDM_category"]:
+                        if "HMDM_category" in dme_data[hsp][ordered[0]]:
+                            for aroctkey in dme_data[hsp][hit]["HMDM_category"]:
                                 cgList.append(str(
-                                    rgi_data[hsp][hit]["HMDM_category"][aroctkey]["category_hmdm_name"].encode('ascii',
+                                    dme_data[hsp][hit]["HMDM_category"][aroctkey]["category_hmdm_name"].encode('ascii',
                                                                                                                'replace').decode(
                                         "utf-8")))
-                        if "hsp_num:" in rgi_data[hsp][ordered[0]]:
-                            hitID.append(rgi_data[hsp][ordered[0]])
+                        if "hsp_num:" in dme_data[hsp][ordered[0]]:
+                            hitID.append(dme_data[hsp][ordered[0]])
 
                         match_dict = {}
 
-                        if "nudged" in rgi_data[hsp][ordered[0]].keys():
-                            nudged = rgi_data[hsp][ordered[0]]["nudged"]
+                        if "nudged" in dme_data[hsp][ordered[0]].keys():
+                            nudged = dme_data[hsp][ordered[0]]["nudged"]
 
-                        if "orf_start_possible" in rgi_data[hsp][ordered[0]].keys():
-                            orf_start_possible = rgi_data[hsp][ordered[0]
+                        if "orf_start_possible" in dme_data[hsp][ordered[0]].keys():
+                            orf_start_possible = dme_data[hsp][ordered[0]
                                                                ]["orf_start_possible"]
 
-                        if "orf_end_possible" in rgi_data[hsp][ordered[0]].keys():
-                            orf_end_possible = rgi_data[hsp][ordered[0]
+                        if "orf_end_possible" in dme_data[hsp][ordered[0]].keys():
+                            orf_end_possible = dme_data[hsp][ordered[0]
                                                              ]["orf_end_possible"]
 
-                        if "note" in rgi_data[hsp][ordered[0]].keys():
-                            note = rgi_data[hsp][ordered[0]]["note"]
+                        if "note" in dme_data[hsp][ordered[0]].keys():
+                            note = dme_data[hsp][ordered[0]]["note"]
 
-                        if "orf_dna_sequence_possible" in rgi_data[hsp][ordered[0]].keys():
-                            orf_dna_sequence_possible = rgi_data[hsp][ordered[0]
+                        if "orf_dna_sequence_possible" in dme_data[hsp][ordered[0]].keys():
+                            orf_dna_sequence_possible = dme_data[hsp][ordered[0]
                                                                       ]["orf_dna_sequence_possible"]
 
-                        if "orf_prot_sequence_possible" in rgi_data[hsp][ordered[0]].keys():
-                            orf_prot_sequence_possible = rgi_data[hsp][ordered[0]
+                        if "orf_prot_sequence_possible" in dme_data[hsp][ordered[0]].keys():
+                            orf_prot_sequence_possible = dme_data[hsp][ordered[0]
                                                                        ]["orf_prot_sequence_possible"]
 
                         if dna == 1:
-                            if nudged == True and rgi_data[hsp][ordered[0]]["type_match"] == "Perfect":
+                            if nudged == True and dme_data[hsp][ordered[0]]["type_match"] == "Perfect":
                                 orf_start = orf_start_possible
                                 orf_end = orf_end_possible
                                 orf_dna = orf_dna_sequence_possible
                                 orf_prot = orf_prot_sequence_possible
                             else:
-                                orf_start = rgi_data[hsp][ordered[0]
+                                orf_start = dme_data[hsp][ordered[0]
                                                           ]["orf_start"]
-                                orf_end = rgi_data[hsp][ordered[0]]["orf_end"]
-                                orf_dna = rgi_data[hsp][ordered[0]
+                                orf_end = dme_data[hsp][ordered[0]]["orf_end"]
+                                orf_dna = dme_data[hsp][ordered[0]
                                                         ]["orf_dna_sequence"]
-                                orf_prot = rgi_data[hsp][ordered[0]
+                                orf_prot = dme_data[hsp][ordered[0]
                                                          ]["orf_prot_sequence"]
 
-                            if len(rgi_data[hsp]) != 0:
-                                if rgi_data[hsp][hit]["model_type_id"] == 41091:
-                                    if "snp" in rgi_data[hsp][ordered[0]]:
-                                        for x in rgi_data[hsp].values():
+                            if len(dme_data[hsp]) != 0:
+                                if dme_data[hsp][hit]["model_type_id"] == 41091:
+                                    if "snp" in dme_data[hsp][ordered[0]]:
+                                        for x in dme_data[hsp].values():
                                             if "snp" in x.keys():
-                                                if x['model_id'] == rgi_data[hsp][ordered[0]]['model_id']:
+                                                if x['model_id'] == dme_data[hsp][ordered[0]]['model_id']:
                                                     temp2.append(
                                                         x["snp"]["original"] + str(x["snp"]["position"]) + x["snp"][
                                                             "change"])
@@ -282,11 +282,11 @@ class ConvertJsonToTSV(object):
                                     else:
                                         best_snps = "n/a"
                                         other_snps = "n/a"
-                                elif rgi_data[hsp][hit]["model_type_id"] in [40293, 40295]:
-                                    if "snp" in rgi_data[hsp][ordered[0]]:
-                                        for x in rgi_data[hsp].values():
+                                elif dme_data[hsp][hit]["model_type_id"] in [40293, 40295]:
+                                    if "snp" in dme_data[hsp][ordered[0]]:
+                                        for x in dme_data[hsp].values():
                                             if "snp" in x.keys():
-                                                if x['model_id'] == rgi_data[hsp][ordered[0]]['model_id']:
+                                                if x['model_id'] == dme_data[hsp][ordered[0]]['model_id']:
                                                     temp2.append(
                                                         x["snp"]["original"] + str(x["snp"]["position"]) + x["snp"][
                                                             "change"])
@@ -308,87 +308,87 @@ class ConvertJsonToTSV(object):
                                     else:
                                         best_snps = "n/a"
                                         other_snps = "n/a"
-                                elif rgi_data[hsp][hit]["model_type_id"] == 54:
+                                elif dme_data[hsp][hit]["model_type_id"] == 54:
                                     best_snps = "n/a"
                                     other_snps = "n/a"
                                 if not other_snps:
                                     other_snps = "n/a"
 
-                                if rgi_data[hsp][hit]["model_type_id"] in [40295]:
+                                if dme_data[hsp][hit]["model_type_id"] in [40295]:
                                     percentage_length_reference_sequence = format(((orf_end - orf_start) /
-                                                                                   len(rgi_data[hsp][ordered[0]][
+                                                                                   len(dme_data[hsp][ordered[0]][
                                                                                        "dna_sequence_from_hmdm"])) * 100,
                                                                                   '.2f')
                                 else:
                                     percentage_length_reference_sequence = format(
-                                        (len(rgi_data[hsp][ordered[0]]["orf_prot_sequence"]) /
-                                         len(rgi_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f')
+                                        (len(dme_data[hsp][ordered[0]]["orf_prot_sequence"]) /
+                                         len(dme_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f')
 
                                 strain = ""
                                 strain_percent_identity = ""
                                 # only populate strain information for Perfect and Strict hits
-                                if rgi_data[hsp][ordered[0]]["type_match"] in ["Perfect", "Strict"]:
+                                if dme_data[hsp][ordered[0]]["type_match"] in ["Perfect", "Strict"]:
                                     strain, strain_percent_identity = self.get_strain(
-                                        orf_dna, rgi_data[hsp][ordered[0]]["orf_from"])
+                                        orf_dna, dme_data[hsp][ordered[0]]["orf_from"])
 
                                 match_dict[hsp] = [hsp,
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["orf_from"],
                                                    orf_start,
                                                    orf_end,
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["orf_strand"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["type_match"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["pass_bitscore"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["bit_score"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["HMDM_name"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["perc_identity"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["HMDM_accession"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["model_type"],
                                                    best_snps,
                                                    other_snps,
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Drug Class'),
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Mechanism'),
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Gene Family'),
                                                    orf_dna,
                                                    orf_prot,
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["sequence_from_hmdm"],
                                                    # length of hsps / length reference
                                                    percentage_length_reference_sequence,
                                                    ordered[0],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["model_id"],
                                                    nudged,
                                                    note,
-                                                   format((rgi_data[hsp][ordered[0]]["positives"] / len(
-                                                       rgi_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   format((dme_data[hsp][ordered[0]]["positives"] / len(
+                                                       dme_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]]["HMDM_category"] \
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       dme_data[hsp][ordered[0]]["HMDM_category"] \
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Drug'),
                                                    strain,
                                                    strain_percent_identity
@@ -397,12 +397,12 @@ class ConvertJsonToTSV(object):
                                 writer.writerow(value)
 
                         else:
-                            if len(rgi_data[hsp]) != 0:
-                                if rgi_data[hsp][hit]["model_type_id"] == 41091:
-                                    if "snp" in rgi_data[hsp][ordered[0]]:
-                                        for x in rgi_data[hsp].values():
+                            if len(dme_data[hsp]) != 0:
+                                if dme_data[hsp][hit]["model_type_id"] == 41091:
+                                    if "snp" in dme_data[hsp][ordered[0]]:
+                                        for x in dme_data[hsp].values():
                                             if "snp" in x.keys():
-                                                if x['model_id'] == rgi_data[hsp][ordered[0]]['model_id']:
+                                                if x['model_id'] == dme_data[hsp][ordered[0]]['model_id']:
                                                     temp2.append(
                                                         x["snp"]["original"] + str(x["snp"]["position"]) + x["snp"][
                                                             "change"])
@@ -417,11 +417,11 @@ class ConvertJsonToTSV(object):
                                     else:
                                         best_snps = "n/a"
                                         other_snps = "n/a"
-                                elif rgi_data[hsp][hit]["model_type_id"] == 40293:
-                                    if "snp" in rgi_data[hsp][ordered[0]]:
-                                        for x in rgi_data[hsp].values():
+                                elif dme_data[hsp][hit]["model_type_id"] == 40293:
+                                    if "snp" in dme_data[hsp][ordered[0]]:
+                                        for x in dme_data[hsp].values():
                                             if "snp" in x.keys():
-                                                if x['model_id'] == rgi_data[hsp][ordered[0]]['model_id']:
+                                                if x['model_id'] == dme_data[hsp][ordered[0]]['model_id']:
                                                     temp2.append(
                                                         x["snp"]["original"] + str(x["snp"]["position"]) + x["snp"][
                                                             "change"])
@@ -436,64 +436,64 @@ class ConvertJsonToTSV(object):
                                     else:
                                         best_snps = "n/a"
                                         other_snps = "n/a"
-                                elif rgi_data[hsp][hit]["model_type_id"] == 54:
+                                elif dme_data[hsp][hit]["model_type_id"] == 54:
                                     best_snps = "n/a"
                                     other_snps = "n/a"
 
                                 match_dict[hsp] = [hsp, "", "", "", "",
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["type_match"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["pass_bitscore"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["bit_score"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["HMDM_name"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["perc_identity"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["HMDM_accession"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["model_type"],
                                                    best_snps,
                                                    other_snps,
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Drug Class'),
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Mechanism'),
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Gene Family'),
                                                    "",
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["orf_prot_sequence"],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["sequence_from_hmdm"],
-                                                   format((len(rgi_data[hsp][ordered[0]]["orf_prot_sequence"]) / len(
-                                                       rgi_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
+                                                   format((len(dme_data[hsp][ordered[0]]["orf_prot_sequence"]) / len(
+                                                       dme_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
                                                    ordered[0],
-                                                   rgi_data[hsp][ordered[0]
+                                                   dme_data[hsp][ordered[0]
                                                                  ]["model_id"],
                                                    nudged,
                                                    note,
-                                                   format((rgi_data[hsp][ordered[0]]["positives"] / len(
-                                                       rgi_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
-                                                   "; ".join(rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                   format((dme_data[hsp][ordered[0]]["positives"] / len(
+                                                       dme_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
+                                                   "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       rgi_data[hsp][ordered[0]
+                                                       dme_data[hsp][ordered[0]
                                                                      ]["HMDM_category"]
-                                                       if rgi_data[hsp][ordered[0]]["HMDM_category"][x][
+                                                       if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Drug'),
                                                    "",
                                                    ""
