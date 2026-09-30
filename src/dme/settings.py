@@ -2,10 +2,13 @@ import os
 import sys
 import logging
 import json
-
+import warnings
+from Bio import BiopythonDeprecationWarning
 from Bio.Blast import NCBIXML
 from Bio.Seq import Seq
 from Bio import SeqIO
+
+warnings.simplefilter('ignore', BiopythonDeprecationWarning)
 
 # ====================================================================================
 # FUNTIONS

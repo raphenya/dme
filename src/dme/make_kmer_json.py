@@ -1,4 +1,12 @@
-import csv, re, argparse, multiprocessing, math, json, ahocorasick, os, sqlite3
+import csv
+import re
+import argparse
+import multiprocessing
+import math
+import json
+import ahocorasick
+import os
+import sqlite3
 from Bio import Seq, SeqIO
 from dme.settings import logger
 import itertools
@@ -6,14 +14,16 @@ import itertools
 This scripts creates the JSON to hold all kmer sets.
 """
 
-def split_list(l,n):
+
+def split_list(l, n):
     for i in range(0, len(l), n):
-        yield l[i:i+n]
+        yield l[i:i + n]
+
 
 def query_kmers(temp_l, t, fasta, o, batch_size):
     """Finds kmers in variant sequences"""
-    ### The fasta being referenced is "nucleotide_prevalence_all.fasta"
-    list_size = math.ceil(len(temp_l)/(math.ceil(len(temp_l)/batch_size)))
+    # The fasta being referenced is "nucleotide_prevalence_all.fasta"
+    list_size = math.ceil(len(temp_l) / (math.ceil(len(temp_l) / batch_size)))
     temp_l = (split_list(temp_l, list_size))
     # print("Total # of indexes:", len(temp_l))
 
@@ -25,7 +35,7 @@ def query_kmers(temp_l, t, fasta, o, batch_size):
             logger.info('PROCESS {t}.{i}: Adding kmers'.format(t=t, i=i))
             A = ahocorasick.Automaton()
             for k in l:
-                A.add_word(k,k)
+                A.add_word(k, k)
             logger.info('PROCESS {t}.{i}: Making automaton'.format(t=t, i=i))
             A.make_automaton()
 
@@ -33,11 +43,12 @@ def query_kmers(temp_l, t, fasta, o, batch_size):
             for entry in SeqIO.parse(fasta, "fasta"):
                 seq_num += 1
                 if seq_num % 25000 == 0:
-                    logger.info('PROCESS {t}.{i}: Done querying {n} sequences'.format(t=t, n=seq_num, i=i))
-
+                    logger.info('PROCESS {t}.{i}: Done querying {n} sequences'.format(
+                        t=t, n=seq_num, i=i))
 
                 prev_id = entry.id.split(":")[1].split("|")[0]
-                pathogens = id_path[prev_id] # get a list of pathogens that prev sequence is found in
+                # get a list of pathogens that prev sequence is found in
+                pathogens = id_path[prev_id]
                 for tup in A.iter(str(entry.seq)):
                     kmer = tup[1]
                     rev_kmer = str(Seq.Seq(kmer).reverse_complement())
@@ -53,11 +64,11 @@ def query_kmers(temp_l, t, fasta, o, batch_size):
 
             logger.info('PROCESS {t}.{i}: Done'.format(t=t, i=i))
 
-
         except Exception as e:
             logger.error(e)
 
     o.put((t, f, r))
+
 
 def get_genomic_kmers(plasmid_file, chr_file, both_file):
     with open(plasmid_file, 'r') as f1:
@@ -105,7 +116,8 @@ def get_genomic_kmers(plasmid_file, chr_file, both_file):
             cf.remove(false_hit)
             bkmers.add(false_hit)
 
-        return list(pf), list(cf), list(bkmers) ## type: sets
+        return list(pf), list(cf), list(bkmers)  # type: sets
+
 
 def get_taxon_kmers(single_file, multi_file, variant_sequences, index_file, k, type, threads, batch_size):
     """Gets taxonomic kmer sets"""
@@ -133,9 +145,9 @@ def get_taxon_kmers(single_file, multi_file, variant_sequences, index_file, k, t
         mkmers = {row[0] for row in multi}
 
     logger.info('Discarding shared single- and multi-species kmers...')
-    sf = list(skmers.difference(mkmers)) # kmers in only the single set
+    sf = list(skmers.difference(mkmers))  # kmers in only the single set
     logger.info('Remaining unique kmers: {}'.format(len(sf)))
-    list_size = math.ceil(len(sf)/threads) # For 'n' threads
+    list_size = math.ceil(len(sf) / threads)  # For 'n' threads
     l = list(split_list(sf, list_size))
 
     logger.info('Querying kmers...')
@@ -143,7 +155,8 @@ def get_taxon_kmers(single_file, multi_file, variant_sequences, index_file, k, t
     output = multiprocessing.Queue()
     processes = []
     for ind in range(len(l)):
-        process = multiprocessing.Process(target=query_kmers, args=(l[ind], ind, variant_sequences, output, batch_size))
+        process = multiprocessing.Process(target=query_kmers, args=(
+            l[ind], ind, variant_sequences, output, batch_size))
         process.start()
         processes.append(process)
         # print(processes)
@@ -196,7 +209,7 @@ def get_taxon_kmers(single_file, multi_file, variant_sequences, index_file, k, t
             shared += 1
             if r[k] == f[k]:
                 same += 1
-            else: # Shared kmers to different pathogens in diff orientations
+            else:  # Shared kmers to different pathogens in diff orientations
                 single += 1
                 to_also_delete.append(k)
     for k in to_also_delete:
@@ -214,12 +227,15 @@ def get_taxon_kmers(single_file, multi_file, variant_sequences, index_file, k, t
 
     return f
 
-def make_json(plasmid_file, chr_file, both_file, genus_file, species_file, \
-                multi_file, variant_sequences, index_file, k, threads, batch_size):
+
+def make_json(plasmid_file, chr_file, both_file, genus_file, species_file,
+              multi_file, variant_sequences, index_file, k, threads, batch_size):
 
     p, c, b = get_genomic_kmers(plasmid_file, chr_file, both_file)
-    s = get_taxon_kmers(species_file, multi_file, variant_sequences, index_file, k, "species", threads, batch_size)
-    g = get_taxon_kmers(genus_file, multi_file, variant_sequences, index_file, k, "genus", threads, batch_size)
+    s = get_taxon_kmers(species_file, multi_file, variant_sequences,
+                        index_file, k, "species", threads, batch_size)
+    g = get_taxon_kmers(genus_file, multi_file, variant_sequences,
+                        index_file, k, "genus", threads, batch_size)
 
     final = {"p": p, "c": c, "b": b, "s": s, "g": g}
 
@@ -240,35 +256,38 @@ def main(args):
     threads = args.threads
     batch_size = args.batch_size
 
-    make_json(plasmid_file, chr_file, both_file, genus_file, species_file, \
-    multi_file, variant_sequences, index_file, k, threads, batch_size)
+    make_json(plasmid_file, chr_file, both_file, genus_file, species_file,
+              multi_file, variant_sequences, index_file, k, threads, batch_size)
+
 
 def run():
     parser = argparse.ArgumentParser(
         description='Creates a kmer catalogue')
     parser.add_argument('-p', dest="plasmid", required=True,
-        help="Plasmid sequence kmers output from Jellyfish")
+                        help="Plasmid sequence kmers output from Jellyfish")
     parser.add_argument('-c', dest="chromosome", required=True,
-        help="Chromosome sequence kmers output from Jellyfish")
+                        help="Chromosome sequence kmers output from Jellyfish")
     parser.add_argument('-b', dest="both", required=True,
-        help="Plasmid + chromosome sequence kmers output from Jellyfish")
+                        help="Plasmid + chromosome sequence kmers output from Jellyfish")
     parser.add_argument('-s', dest="species", required=True,
-        help="Single species kmer output from Jellyfish")
+                        help="Single species kmer output from Jellyfish")
     parser.add_argument('-g', dest="genus", required=True,
-        help="Single genus kmer output from Jellyfish")
+                        help="Single genus kmer output from Jellyfish")
     parser.add_argument('-m', dest="multi", required=True,
-        help="Multi species kmer output from Jellyfish")
+                        help="Multi species kmer output from Jellyfish")
     parser.add_argument('-v', dest="variants", required=True,
-        help="CARD*Resistomes&Variants sequences (FASTA)")
+                        help="CARD*Resistomes&Variants sequences (FASTA)")
     parser.add_argument('-i', dest="index", required=True,
-        help="CARD*Resitomes&Variants index (index-for-model-sequences.txt)")
+                        help="CARD*Resitomes&Variants index (index-for-model-sequences.txt)")
     parser.add_argument('-k', dest="k", required=True,
-        help="kmer length")
-    parser.add_argument('-n','--threads', dest="threads", type=int,
-            default=1, help="number of threads (CPUs) to use (default={})".format(1))
-    parser.add_argument('--batch_size', dest='batch_size', type=int, default=100000, help='Number of kmers to query at a time using pyahocorasick--the greater the number the more memory usage (default=100,000)')
+                        help="kmer length")
+    parser.add_argument('-n', '--threads', dest="threads", type=int,
+                        default=1, help="number of threads (CPUs) to use (default={})".format(1))
+    parser.add_argument('--batch_size', dest='batch_size', type=int, default=100000,
+                        help='Number of kmers to query at a time using pyahocorasick--the greater the number the more memory usage (default=100,000)')
     args = parser.parse_args()
     main(args)
+
 
 if __name__ == '__main__':
     run()

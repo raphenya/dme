@@ -36,11 +36,6 @@ class MainBase(object):
                database  Information on installed hmdm database
 
                ---------------------------------------------------------------------------------------
-               BLAST
-               ---------------------------------------------------------------------------------------
-               blast     Runs NCBI BLAST algorithm on HMDM data
-
-               ---------------------------------------------------------------------------------------
                Genomic
                ---------------------------------------------------------------------------------------
 
@@ -51,8 +46,7 @@ class MainBase(object):
 
         parser = argparse.ArgumentParser(prog="dme", description='{} - {}'.format(
             APP_NAME, _DISTRIBUTION_METADATA['Version']), epilog=SOFTWARE_SUMMARY, usage=USAGE)
-        parser.add_argument('command', choices=['main', 'tab', 'parser', 'load', 'auto_load',
-                                                'clean', 'galaxy', 'database', 'bwt', 'tm', 'hmdm_annotation', 'wildhmdm_annotation', 'baits_annotation', 'remove_duplicates', 'heatmap', 'kmer_build', 'kmer_query'],
+        parser.add_argument('command', choices=['main', 'tab', 'load', 'auto_load', 'clean', 'database'],
                             help='Subcommand to run')
 
         if api == False:
@@ -103,8 +97,6 @@ class MainBase(object):
                             help="specify a data-type (default = NA)")
         parser.add_argument('-v', '--version', action='version', version="{}".format(
             _DISTRIBUTION_METADATA['Version']), help="prints software version number")
-        parser.add_argument('--split_prodigal_jobs', dest="split_prodigal_jobs", action="store_true",
-                            help="run multiple prodigal jobs simultaneously for contigs in a fasta file")
         return parser
 
     def main_run(self, args):
@@ -121,8 +113,6 @@ class MainBase(object):
             prog="dme tab", description="{} - {} - Tab-delimited".format(APP_NAME, _DISTRIBUTION_METADATA['Version']))
         parser.add_argument(
             '-i', '--afile', help='must be a dme json result file', required=True)
-        parser.add_argument('--local', dest="local_database", action='store_true',
-                            help="use local database (default: uses database in executable directory)")
         return parser
 
     def tab_run(self, args):

@@ -43,9 +43,10 @@ class ORF(object):
         quality = "-n -p single"
 
         minimum_sequence_length, maximum_sequence_length, number_of_sequences = self.min_max_sequence_length()
-        logger.info("minimum sequence length: {}, maximun sequence length {}, number of sequences: {}".format(
-            minimum_sequence_length, maximum_sequence_length, number_of_sequences))
-
+        # logger.info(
+        #     f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
+        print(
+            f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
         if number_of_sequences > 1 and self.split_prodigal_jobs == True:
             # TODO validate if fasta file doesn't contain gaps
             self.orf_prodigal_multi()

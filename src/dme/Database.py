@@ -1,3 +1,4 @@
+import subprocess
 from dme.settings import *
 
 
@@ -33,26 +34,33 @@ class Database(object):
         if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True  \
            and os.path.exists(os.path.join(self.db, "{}.db.phr".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}.db.pin".format(dbtype))) == True \
            and os.path.exists(os.path.join(self.db, "{}.db.psq".format(dbtype))) == True:
-            logger.info("blast DB exists")
+            # logger.info("blast DB exists")
             pass
         else:
-            logger.info("create blast DB.")
+            # logger.info("create blast DB.")
             type = "prot"
             if dbtype == "dna":
                 type = "nucl"
-            os.system('makeblastdb -in {} -dbtype {type} -out {} {stdout}'.format(os.path.join(self.db,
-                      "{}db.fsa".format(dbtype)), os.path.join(self.db, "{}.db".format(dbtype)), type=type, stdout=self.stdout))
+            infasta = os.path.join(self.db, f"{dbtype}db.fsa")
+            outres = os.path.join(self.db, f"{dbtype}.db")
+            os.system(
+                f'makeblastdb -in {infasta} -dbtype {type} -out {outres} {self.stdout}')
+            # response = subprocess.run(
+            #     ["makeblastdb", "-in", infasta, "-dbtype", type, "-out", outres, self.stdout])
 
     def make_diamond_database(self, dbtype="protein"):
         """Build DIAMOND database from a FASTA file."""
         if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True \
                 and os.path.exists(os.path.join(self.db, "{}.db.dmnd".format(dbtype))) == True:
-            logger.info("diamond DB exists")
+            # logger.info("diamond DB exists")
             pass
         else:
-            logger.info("create diamond DB.")
-            os.system('diamond makedb --quiet --in {} --db {} {stdout}'.format(os.path.join(self.db,
-                      "{}db.fsa".format(dbtype)), os.path.join(self.db, "{}.db".format(dbtype)), stdout=self.stdout))
+            # logger.info("create diamond DB.")
+            infasta = os.path.join(self.db, f"{dbtype}db.fsa")
+            outres = os.path.join(self.db, f"{dbtype}.db")
+            os.system(
+                f'diamond makedb --quiet --in {infasta} --db {outres} {self.stdout}')
+            # response = subprocess.run(["diamond makedb","--quiet","--in",infasta, "--db", outres, self.stdout])
 
     def make_custom_db(self, in_file, out_file, db_type="nucl", program="blast"):
         if program == 'blast':

@@ -1,5 +1,10 @@
-import os, sys, json, csv, argparse
+import os
+import sys
+import json
+import csv
+import argparse
 from dme.settings import *
+
 
 def main(args):
     working_directory = os.getcwd()
@@ -10,18 +15,23 @@ def main(args):
      - The index file should be modelled from this file (baits-probes-with-sequence-info.txt)
      - Running this command should yield a similar FASTA file like 'bait-80-20-q875t875id99.fas'
      - For now don't use this command to annotate baits, just load files
-      'bait-80-20-q875t875id99.fas' and 'baits-probes-with-sequence-info.txt' using the rgi load commnand
+      'bait-80-20-q875t875id99.fas' and 'baits-probes-with-sequence-info.txt' using the dme load commnand
     """)
 
+
 def create_parser():
-    parser = argparse.ArgumentParser(prog="rgi baits_annotation",description='Creates baits annotations for RGI BWT from baits')
-    parser.add_argument('--index_file', dest="index_file", required=True, help="index file with baits information")
+    parser = argparse.ArgumentParser(
+        prog="dme baits_annotation", description='Creates baits annotations for DME BWT from baits')
+    parser.add_argument('--index_file', dest="index_file",
+                        required=True, help="index file with baits information")
     return parser
+
 
 def run():
     parser = create_parser()
     args = parser.parse_args()
     main(args)
+
 
 if __name__ == '__main__':
     run()

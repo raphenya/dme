@@ -1,3 +1,12 @@
+import subprocess
+import glob
+import time
+import gzip
+import bz2
+import filetype
+
+from Bio import SeqIO
+
 from dme.DMEBase import DMEBase
 from dme.Database import Database
 from dme.Blast import Blast
@@ -5,17 +14,7 @@ from dme.Diamond import Diamond
 from dme.ORF import ORF
 from dme.Filter import Filter
 from dme.Output import Output
-
-import filetype
-from Bio import SeqIO
-import glob
-import time
-import shutil
-import gzip
-import zlib
-import bz2
 from dme.settings import *
-import subprocess
 
 
 class DMECore(DMEBase):
@@ -61,7 +60,7 @@ class DMECore(DMEBase):
 
     def __repr__(self):
         """Returns DMECore class full object."""
-        return "DMECore({}".format(self.__dict__)
+        return f"DMECore({self.__dict__}"
 
     @classmethod
     def from_string(cls, cmd_string):
@@ -93,34 +92,31 @@ class DMECore(DMEBase):
                 - validation for mutually exclusive options e.g. protein sequence for contig input_type etc
         """
         if not os.path.exists(self.input_sequence):
-            logger.error("input file does not exist: {}".format(
-                self.input_sequence))
-            exit()
+            logger.error("input file does not exist: %s", self.input_sequence)
+            sys.exit()
 
-    # otherwise you blow up your input when deleting intermediate files
+        # otherwise you blow up your input when deleting intermediate files
         if self.output_file == self.input_sequence and self.clean:
-            logger.error("output path same as input, must specify "
-                         "different path when cleaning to prevent "
-                         "accidental deletion of input files")
-            exit()
+            logger.error(
+                "output path same as input, must specify different path when cleaning to prevent accidental deletion of input files")
+            sys.exit()
 
-        logger.info("{} => {}".format(self.input_sequence,
-                    filetype.guess(self.input_sequence)))
         kind = filetype.guess(self.input_sequence)
+        # logger.info(f"{self.input_sequence} => {kind}")
 
         if kind is None:
             if self.is_fasta() == False:
                 logger.error("invalid fasta")
-                exit()
+                sys.exit()
         else:
             if kind.extension in ["gz", "bz2"]:
                 if self.is_fasta(kind.extension) == False:
                     logger.error("invalid fasta")
-                    exit()
+                    sys.exit()
                 # uncompressed input and use uncompressed file
                 filename = os.path.basename(self.input_sequence)
                 umcompressed_file = os.path.join(
-                    self.working_directory, "{}.temp.uncompressed.fsa".format(filename))
+                    self.working_directory, f"{filename}.temp.uncompressed.fsa")
                 with open(umcompressed_file, "w") as file_out:
                     if kind.extension == "gz":
                         with gzip.open(self.input_sequence, "rt") as handle:
@@ -133,13 +129,13 @@ class DMECore(DMEBase):
                 self.umcompressed_file = umcompressed_file
             else:
                 logger.error(
-                    "Sorry, no support for file format {}".format(kind.mime))
-                exit()
+                    "Sorry, no support for file format %s", kind.mime)
+                sys.exit()
 
         if self.threads > os.cpu_count():
-            logger.error("Argument num_threads illegal value, expected (>=1 and =<{}):  given `{}`)".format(
-                os.cpu_count(), self.threads))
-            exit()
+            logger.error("Argument num_threads illegal value, expected (>=1 and =<%s):  given `%s`)",
+                         os.cpu_count(), self.threads)
+            sys.exit()
 
     def is_fasta(self, extension=""):
         """Checks for valid fasta format."""
@@ -174,9 +170,7 @@ class DMECore(DMEBase):
     # TODO: test
     def _is_fasta(self):
         """Checks for valid fasta format using seqkit stats"""
-        cmd = "seqkit stats --tabular {input_sequence} --out-file - | grep -v format".format(
-            input_sequence=self.input_sequence
-        )
+        cmd = f"seqkit stats --tabular {self.input_sequence} --out-file - | grep -v format"
         result = subprocess.check_output(cmd, shell=True)
         result_dict = result.strip().decode().split("\t")
 
@@ -212,9 +206,9 @@ class DMECore(DMEBase):
             try:
                 nucleotide_dict[base.upper()] += 1
             except Exception as e:
-                logger.error("invalid nucleotide fasta due to: {}".format(e))
+                logger.error("invalid nucleotide fasta due to: %s", e)
                 return False
-        logger.info("valid nucleotide fasta: {}".format(nucleotide_dict))
+        # logger.info(f"valid nucleotide fasta: '{json.dumps(nucleotide_dict)}'")
         return True
 
     @staticmethod
@@ -232,7 +226,7 @@ class DMECore(DMEBase):
             try:
                 amino_acids_dict[amino_acid.upper()] += 1
             except Exception as e:
-                logger.error("invalid protein fasta due to: {}".format(e))
+                logger.error("invalid protein fasta due to: %s", e)
                 return False
 
         for a in amino_acids_dict.keys():
@@ -240,10 +234,10 @@ class DMECore(DMEBase):
                 count = count + amino_acids_dict[a]
 
         if count == 0:
-            logger.error("invalid protein fasta: {}".format(amino_acids_dict))
+            logger.error("invalid protein fasta: %s", amino_acids_dict)
             return False
 
-        logger.info("valid protein fasta: {}".format(amino_acids_dict))
+        logger.info("valid protein fasta: %s", amino_acids_dict)
         return True
 
     def __set_xml_filepath(self, fp):
@@ -264,16 +258,16 @@ class DMECore(DMEBase):
         self.filter_process()
         # logger.info("Output......")
         # self.out()
-        logger.info('Total running time {}s'.format(
-            round(time.time() - t0, 3)))
+        lapse_time = round(time.time() - t0, 3)
+        logger.info('Total running time %s s', lapse_time)
 
     def clean_files(self):
         """Cleans temporary files."""
         if self.clean == True:
             basename_output_file = os.path.splitext(
                 os.path.basename(self.output_file))[0]
-            logger.info("Cleaning up temporary files...{}".format(
-                basename_output_file))
+            logger.info("Cleaning up temporary files...%s",
+                        basename_output_file)
             # remove uncompressed input file
             if self.umcompressed_file != "":
                 self.remove_file(self.umcompressed_file)
@@ -306,12 +300,12 @@ class DMECore(DMEBase):
         """Removes file."""
         if os.path.exists(f):
             try:
-                logger.info("Removed file: {}".format(f))
+                logger.info("Removed file: %s", f)
                 os.remove(f)
             except Exception as e:
                 raise e
         else:
-            logger.warning("Missing file: {}".format(f))
+            logger.warning("Missing file: %s", f)
 
     def out(self):
         """Writes tab-delimited, ggf3 output files."""
@@ -325,19 +319,19 @@ class DMECore(DMEBase):
         elif self.input_type == "contig":
             self.process_contig()
         else:
-            logger.error("Invalid input_type: {} ".format(self.input_type))
-            exit()
+            logger.error("Invalid input_type: %s ", self.input_type)
+            sys.exit()
 
     def set_xml_filepath(self, fp):
         """Sets blast xml filepath."""
-        logger.info("set blast xml file: [{}]".format(fp))
+        # logger.info("set blast xml file: [%s]", fp)
         self.blast_results_xml_file = fp
 
     def process_protein(self):
         """Process protein sequence(s)."""
         file_name = os.path.basename(self.input_sequence)
         xml_file = os.path.join(self.working_directory,
-                                "{}.temp.blastRes.xml".format(file_name))
+                                f"{file_name}.temp.blastRes.xml")
 
         if self.aligner == "diamond":
             diamond_obj = Diamond(self.input_sequence, xml_file,
@@ -357,13 +351,13 @@ class DMECore(DMEBase):
                       working_directory=self.working_directory, low_quality=self.low_quality, split_prodigal_jobs=self.split_prodigal_jobs)
         orf_obj.contig_to_orf()
         contig_fsa_file = os.path.join(
-            self.working_directory, "{}.temp.contig.fsa".format(file_name))
+            self.working_directory, f"{file_name}.temp.contig.fsa")
         blast_results_xml_file = os.path.join(
-            self.working_directory, "{}.temp.contig.fsa.blastRes.xml".format(file_name))
+            self.working_directory, f"{file_name}.temp.contig.fsa.blastRes.xml")
 
         try:
             if os.stat(contig_fsa_file).st_size > 0:
-                logger.info("work with file {}".format(contig_fsa_file))
+                # logger.info("work with file %s", contig_fsa_file)
                 if self.aligner == "diamond":
                     diamond_obj = Diamond(
                         contig_fsa_file, local_database=self.local_database, num_threads=self.threads)
@@ -378,7 +372,7 @@ class DMECore(DMEBase):
                 logger.error("no open reading frames (orfs) found.")
         except Exception as e:
             self.write_stub_output_file()
-            logger.exception("failed to write orf file")
+            logger.exception("failed to write orf file, %s", e)
         else:
             # logger.info("success procession orf file")
             pass
@@ -390,7 +384,7 @@ class DMECore(DMEBase):
 
     # @profile
     def filter_process(self):
-        logger.info("run filter")
+        # logger.info("run filter")
         """Filter each detection models and predict resistome(s)."""
         filter_obj = Filter(self.input_type, self.loose, self.input_sequence, self.blast_results_xml_file,
                             os.path.join(self.dp, "hmdm.json"), os.path.basename(self.input_sequence), self.output_file, self.threads, self)

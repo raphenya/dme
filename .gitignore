@@ -18,6 +18,7 @@ run-test.sh
 hmdm.json
 strainsdb.fsa
 localDB/
+samples/
 
 # twine
 .pypirc

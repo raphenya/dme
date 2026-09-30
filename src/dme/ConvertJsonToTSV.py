@@ -387,7 +387,8 @@ class ConvertJsonToTSV(object):
                                                        dme_data[hsp][ordered[0]]["sequence_from_hmdm"])) * 100, '.2f'),
                                                    "; ".join(dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_name"] for x in
-                                                       dme_data[hsp][ordered[0]]["HMDM_category"] \
+                                                       dme_data[hsp][ordered[0]
+                                                                     ]["HMDM_category"]
                                                        if dme_data[hsp][ordered[0]]["HMDM_category"][x][
                                                        "category_hmdm_class_name"] == 'Drug'),
                                                    strain,

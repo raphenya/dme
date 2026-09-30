@@ -1,4 +1,9 @@
-import os, sys, json, csv, argparse, glob
+import os
+import sys
+import json
+import csv
+import argparse
+import glob
 import dme.make_kmer_json
 from Bio import SeqIO, Seq
 
@@ -10,13 +15,15 @@ Please provide location to the CARD*Resistomes&Variants nucleotide FASTAs
 
 working_directory = os.path.join(os.getcwd())
 
+
 def combine_variant_sequences(f1, f2, f3, f4):
     os.system(
         "cat {fasta_one} {fasta_two} {fasta_three} {fasta_four} > {prev_fasta}"
         .format(fasta_one=f1, fasta_two=f2,
-        fasta_three=f3, fasta_four=f4,
-        prev_fasta=os.path.join(working_directory, 'nucleotide_prevalence_all.fasta'))
+                fasta_three=f3, fasta_four=f4,
+                prev_fasta=os.path.join(working_directory, 'nucleotide_prevalence_all.fasta'))
     )
+
 
 def split_variant_sequences(index, fasta):
     # Plasmids/Data type
@@ -50,9 +57,9 @@ def split_variant_sequences(index, fasta):
 
     # Discard shared sequences in genomic sets
     p_and_chr = id_plas.intersection(id_chr)
-    tplas = id_plas.difference(id_chr) # plasmid sequqences not in chromosomes
+    tplas = id_plas.difference(id_chr)  # plasmid sequqences not in chromosomes
     tchr = id_chr.difference(id_plas)
-    tcontig = id_contig.difference(tchr) # contig sequences not in chr
+    tcontig = id_contig.difference(tchr)  # contig sequences not in chr
     tcontig = tcontig.difference(tplas)
     tcontig = tcontig.difference(p_and_chr)
     print('Writing genomic outputs...')
@@ -103,6 +110,7 @@ def split_variant_sequences(index, fasta):
     print('# of sequences in single species:', species_count)
     print('# of sequences in single genus:', genus_count)
     print('# of sequences in multiple genus:', multi_count)
+
 
 def count_kmers(k, threads):
     # Species
@@ -221,12 +229,14 @@ def count_kmers(k, threads):
 
     return species_kmers, genus_kmers, multi_kmers, both_kmers, plasmid_kmers, chr_kmers
 
+
 def is_tool(name):
     import distutils.spawn
     if distutils.spawn.find_executable(name) is not None:
         return True
     else:
         return False
+
 
 def main(args):
     # check if jellyfish is installed
@@ -239,7 +249,7 @@ def main(args):
     k = args.k
     batch_size = args.batch_size
 
-    files = glob.glob(os.path.join(prevalence_directory,"*"))
+    files = glob.glob(os.path.join(prevalence_directory, "*"))
     for f in files:
         if "index" in f:
             index = f
@@ -271,7 +281,8 @@ def main(args):
         pass
 
     print("-- COUNTING KMERS --")
-    species_kmers, genus_kmers, multi_kmers, both_kmers, plasmid_kmers, chr_kmers = count_kmers(k,args.threads)
+    species_kmers, genus_kmers, multi_kmers, both_kmers, plasmid_kmers, chr_kmers = count_kmers(
+        k, args.threads)
     print("DONE \n")
 
     # """DEBUG"""
@@ -288,12 +299,12 @@ def main(args):
     both_file = os.path.join(working_directory, both_kmers)
     plasmid_file = os.path.join(working_directory, plasmid_kmers)
     chr_file = os.path.join(working_directory, chr_kmers)
-    variant_sequences = os.path.join(working_directory, \
-                        "nucleotide_prevalence_all.fasta")
+    variant_sequences = os.path.join(working_directory,
+                                     "nucleotide_prevalence_all.fasta")
 
     print("-- CREATING KMER SETS --")
-    dme.make_kmer_json.make_json(plasmid_file, chr_file, both_file, genus_file, \
-    species_file, multi_file, variant_sequences, index, k, args.threads, batch_size)
+    dme.make_kmer_json.make_json(plasmid_file, chr_file, both_file, genus_file,
+                                 species_file, multi_file, variant_sequences, index, k, args.threads, batch_size)
     print("DONE \n")
 
     print("-- CREATING AMR {}-MER SET --".format(k))
@@ -318,26 +329,30 @@ def main(args):
 
     print("Finished creating CARD*kmers set.")
 
+
 def create_parser():
     parser = argparse.ArgumentParser(
         description="Builds the kmer sets for CARD*kmers")
     parser.add_argument('-i', '--input_directory', dest="input_directory",
-        help="input directory of prevalence data")
+                        help="input directory of prevalence data")
     parser.add_argument('-c', '--card', dest="card_fasta", required=True,
-        help="fasta file of CARD reference sequences. If missing, run 'rgi card_annotation' to generate.")
+                        help="fasta file of CARD reference sequences. If missing, run 'rgi card_annotation' to generate.")
     parser.add_argument('-k', dest="k", required=True,
-        help="k-mer size (e.g., 61)")
+                        help="k-mer size (e.g., 61)")
     parser.add_argument('--skip', dest="skip", action='store_true',
-        help="skips the concatenation and splitting of the CARD*R*V sequences.")
-    parser.add_argument('-n','--threads', dest="threads", type=int,
-            default=1, help="number of threads (CPUs) to use (default={})".format(1))
-    parser.add_argument('--batch_size', dest='batch_size', type=int, default=100000, help='number of kmers to query at a time using pyahocorasick--the greater the number the more memory usage (default=100,000)')
+                        help="skips the concatenation and splitting of the CARD*R*V sequences.")
+    parser.add_argument('-n', '--threads', dest="threads", type=int,
+                        default=1, help="number of threads (CPUs) to use (default={})".format(1))
+    parser.add_argument('--batch_size', dest='batch_size', type=int, default=100000,
+                        help='number of kmers to query at a time using pyahocorasick--the greater the number the more memory usage (default=100,000)')
     return parser
+
 
 def run():
     parser = create_parser()
     args = parser.parse_args()
     main(args)
+
 
 if __name__ == '__main__':
     run()
