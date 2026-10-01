@@ -21,13 +21,13 @@ dependencies = [
   "matplotlib",
   "pysam",
   "seguid",
-  "pytest"
+  "pytest",
+  "diamond"
 ]
 
 [external]
 dependencies = [
-  "prodigal @ git+https://github.com/hyattpd/Prodigal/archive/refs/tags/v2.6.3.tar.gz",
-  "diamond @ git+https://github.com/bbuchfink/diamond/archive/refs/tags/v0.8.36.tar.gz",
+  "prodigal @ git+https://github.com/hyattpd/Prodigal/archive/refs/tags/v2.6.3.tar.gz"
 ]
 
 authors = [
