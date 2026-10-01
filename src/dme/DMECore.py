@@ -21,7 +21,7 @@ class DMECore(DMEBase):
     """Class to predict drug metabolizing gene from protein or nucleotide data based on HMDM detection models."""
 
     def __init__(self, input_type='contig', input_sequence=None, threads=32, output_file=None, loose=False,
-                 clean=True, data='na', aligner='blast', galaxy=None, local_database=False, low_quality=False, debug=False, split_prodigal_jobs=False, include_nudge=False):
+                 clean=True, data='na', aligner='blast', galaxy=None, local_database=False, low_quality=False, debug=False, include_nudge=False):
         """Creates DMECore object for prediction."""
 
         o_f_path, o_f_name = os.path.split(os.path.abspath(output_file))
@@ -49,7 +49,6 @@ class DMECore(DMEBase):
         self.working_directory = o_f_path
         self.blast_results_xml_file = ''
         self.debug = debug
-        self.split_prodigal_jobs = split_prodigal_jobs
         self.include_nudge = include_nudge
         self.umcompressed_file = ""
 
@@ -348,7 +347,7 @@ class DMECore(DMEBase):
         """Process nuclotide sequence(s)."""
         file_name = os.path.basename(self.input_sequence)
         orf_obj = ORF(input_file=self.input_sequence, threads=self.threads, clean=self.clean,
-                      working_directory=self.working_directory, low_quality=self.low_quality, split_prodigal_jobs=self.split_prodigal_jobs)
+                      working_directory=self.working_directory, low_quality=self.low_quality)
         orf_obj.contig_to_orf()
         contig_fsa_file = os.path.join(
             self.working_directory, f"{file_name}.temp.contig.fsa")

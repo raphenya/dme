@@ -10,7 +10,7 @@ import shutil
 class ORF(object):
     """Class to find open reading frames from nucleotide sequence."""
 
-    def __init__(self, input_file, threads, clean=True, working_directory=None, low_quality=False, training_file=None, split_prodigal_jobs=False):
+    def __init__(self, input_file, threads, clean=True, working_directory=None, low_quality=False, training_file=None):
         """Creates ORF object for finding open reading frames."""
         self.input_file = input_file
         self.clean = clean
@@ -18,7 +18,6 @@ class ORF(object):
         self.low_quality = low_quality
         self.training_file = training_file
         self.threads = threads
-        self.split_prodigal_jobs = split_prodigal_jobs
 
     def __repr__(self):
         """Returns ORF class full object."""
@@ -47,41 +46,34 @@ class ORF(object):
         #     f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
         print(
             f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
-        if number_of_sequences > 1 and self.split_prodigal_jobs == True:
-            # TODO validate if fasta file doesn't contain gaps
-            self.orf_prodigal_multi()
-        else:
-            if self.low_quality == True or minimum_sequence_length < 20000:
-                quality = "-p meta"
 
-            filename = os.path.basename(self.input_file)
+        if self.low_quality == True or minimum_sequence_length < 20000:
+            quality = "-p meta"
 
-            stdout = "2> /dev/null"
+        filename = os.path.basename(self.input_file)
 
-            cmd = "prodigal -q -m -a {trans_file} -i {input_file} -o  {output_file} -d {nuc_file} -s {potential_genes} {quality} {stdout}" \
-                .format(
-                    trans_file=os.path.join(
-                        self.working_directory, "{}.temp.contig.fsa".format(filename)),
-                    input_file=self.input_file,
-                    output_file=os.path.join(
-                        self.working_directory, "{}.temp.draft".format(filename)),
-                    quality=quality,
-                    stdout=stdout,
-                    nuc_file=os.path.join(
-                        self.working_directory, "{}.temp.contigToORF.fsa".format(filename)),
-                    potential_genes=os.path.join(
-                        self.working_directory, "{}.temp.potentialGenes".format(filename))
-                )
+        stdout = "2> /dev/null"
 
-            # logger.debug(cmd)
-            os.system(cmd)
+        cmd = "prodigal -q -m -a {trans_file} -i {input_file} -o  {output_file} -d {nuc_file} -s {potential_genes} {quality} {stdout}" \
+            .format(
+                trans_file=os.path.join(
+                    self.working_directory, "{}.temp.contig.fsa".format(filename)),
+                input_file=self.input_file,
+                output_file=os.path.join(
+                    self.working_directory, "{}.temp.draft".format(filename)),
+                quality=quality,
+                stdout=stdout,
+                nuc_file=os.path.join(
+                    self.working_directory, "{}.temp.contigToORF.fsa".format(filename)),
+                potential_genes=os.path.join(
+                    self.working_directory, "{}.temp.potentialGenes".format(filename))
+            )
 
-            # format the contig file headers to remove space
-            # format_fasta_headers(working_directory+"/"+filename+".contig.fsa")
+        os.system(cmd)
 
-            if self.clean == True:
-                os.remove(os.path.join(self.working_directory,
-                          "{}.temp.draft".format(filename)))
+        if self.clean == True:
+            os.remove(os.path.join(self.working_directory,
+                                   "{}.temp.draft".format(filename)))
 
     def orf_prodigal_multi(self):
         seq = self.split_fasta()
