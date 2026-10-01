@@ -3,7 +3,6 @@ from dme.settings import *
 from operator import itemgetter, attrgetter
 from collections import OrderedDict
 import Bio
-from Bio.Blast.Applications import NcbiblastnCommandline
 from Bio.Blast import NCBIXML
 import subprocess
 
@@ -95,26 +94,28 @@ class ConvertJsonToTSV(object):
                 os.path.splitext(f_name)[0]))
             query_string = '>' + orf + '\n' + str(sequence)
             # blast sequence against custom strains database
-            # evalue=0.001)
-            blast_command = Bio.Blast.Applications.NcbiblastnCommandline(cmd='blastn',
-                                                                         out=output,
-                                                                         outfmt=5,
-                                                                         db=os.path.join(self.db,
-                                                                                         "{}.db".format("strains")),
-                                                                         max_target_seqs=1)
-            stdout, stderr = blast_command(stdin=query_string)
-            # subprocess.run(blast_command)
-            # print("stdout: ", stdout)
-            # print("stderr: ", stderr)
+            blast_command = [
+                "blastn",
+                "-out", output,
+                "-outfmt", "5",
+                "-db", os.path.join(self.db, "{}.db".format("strains")),
+                "-max_target_seqs", "1",
+            ]
+            result = subprocess.run(
+                blast_command,
+                input=query_string,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            stdout, stderr = result.stdout, result.stderr
             strain = ""
             percent_identity = ""
             # read results and return 1 top hit to strains database
             with open(output, 'r') as result_handle:
                 blast_records = NCBIXML.read(result_handle)
                 for alignment in blast_records.alignments:
-                    # strain = alignment.hit_def
                     for hsp in alignment.hsps:
-                        # print(alignment.hit_def, " => ", hsp.identities)
                         percent_identity = float(
                             format(float(hsp.identities * 100) / len(hsp.query), '.2f'))
                         strain = alignment.hit_def
