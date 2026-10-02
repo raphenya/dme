@@ -87,12 +87,6 @@ usage: dme <command> [<args>]
                load      Loads HMDM database, annotations and k-mer database
                clean     Removes BLAST databases and temporary files
                database  Information on installed hmdm database
-               galaxy    Galaxy project wrapper
-
-               ---------------------------------------------------------------------------------------
-               BLAST
-               ---------------------------------------------------------------------------------------
-               blast     Runs NCBI BLAST algorithm on HMDM data
 
                ---------------------------------------------------------------------------------------
                Genomic
@@ -100,28 +94,18 @@ usage: dme <command> [<args>]
 
                main     Runs dme application
                tab      Creates a Tab-delimited from dme results
-               parser   Creates categorical JSON files DME wheel visualization
-               heatmap  Heatmap for multiple analysis
-
-               ---------------------------------------------------------------------------------------
-               Annotations
-               ---------------------------------------------------------------------------------------
-               hmdm_annotation       Create fasta files with annotations from hmdm.json
-               wildhmdm_annotation   Create fasta files with annotations from variants
-               baits_annotation      Create fasta files with annotations from baits (experimental)
-               remove_duplicates     Removes duplicate sequences (experimental)
 
                
 
 Drug Metabolising Enzyme (DME) - 1.0.0
 
 positional arguments:
-  {main,tab,parser,load,auto_load,clean,galaxy,database,bwt,tm,hmdm_annotation,wildhmdm_annotation,baits_annotation,remove_duplicates,heatmap,kmer_build,kmer_query}
+  {main,tab,load,auto_load,clean,database}
                         Subcommand to run
 
 options:
   -h, --help            show this help message and exit
 
-Use the Drug Metabolising Enzyme (DME) to predict drug-metabolizing enzymes from protein or nucleotide data based on homology models. Check https://hmdm.mcmaster.ca/download for software and
-data updates. Receive email notification of monthly HMDM updates via the HMDM Mailing List (https://mailman.mcmaster.ca/mailman/listinfo/hmdm-l)
+Use the Drug Metabolising Enzyme (DME) to predict drug-metabolizing enzymes from protein or nucleotide data based on homology models. Check https://hmdm.mcmaster.ca/download for software and data updates.
+Receive email notification of monthly HMDM updates via the HMDM Mailing List (https://mailman.mcmaster.ca/mailman/listinfo/hmdm-l)
 ```
