@@ -119,10 +119,10 @@ def main(args):
         else:
             logger.error("Need to specify kmer size when loading kmer files.")
 
-    if args.amr_kmers is not None:
+    if args.kmers is not None:
         if args.kmer_size is not None:
-            load_file(args.local_database, args.amr_kmers,
-                      "amr_{}mer.txt".format(str(args.kmer_size)))
+            load_file(args.local_database, args.kmers,
+                      "{}mer.txt".format(str(args.kmer_size)))
             if args.kmer_size not in loaded_databases["hmdm_kmers"]["kmer_sizes"]:
                 loaded_databases["hmdm_kmers"]["kmer_sizes"].append(
                     args.kmer_size)
@@ -278,7 +278,7 @@ def create_parser():
 
     parser.add_argument('--kmer_database', required=False,
                         help="json of kmer database")
-    parser.add_argument('--amr_kmers', required=False,
+    parser.add_argument('--kmers', required=False,
                         help="txt file of all amr kmers")
     parser.add_argument('--kmer_size', required=False,
                         help="kmer size if loading kmer files")

@@ -9,10 +9,10 @@ import dme.auto_load
 import dme.clean
 import dme.build_kmer_sets
 import dme.hmdm_annotation
-import dme.wildcard_annotation
+import dme.wildhmdm_annotation
 import dme.baits_annotation
 import dme.remove_duplicates
-from dme.kmer_query import CARDkmers
+from dme.kmer_query import HMDMkmers
 from dme.BWT import BWT
 from dme.Heatmap import Heatmap
 from dme.Baits import Baits
@@ -199,33 +199,33 @@ class MainBase(object):
         return parser
 
     def kmer_query_run(self, args):
-        obj = CARDkmers(args.input, args.bwt, args.dme, args.fasta, args.k,
+        obj = HMDMkmers(args.input, args.bwt, args.dme, args.fasta, args.k,
                         args.min, args.threads, args.output, args.local_database, args.debug)
         obj.run()
 
-    def card_annotation(self):
-        parser = self.card_annotation_args()
+    def hmdm_annotation(self):
+        parser = self.hmdm_annotation_args()
         args = parser.parse_args(sys.argv[2:])
-        self.card_annotation_run(args)
+        self.hmdm_annotation_run(args)
 
-    def card_annotation_args(self):
-        parser = dme.card_annotation.create_parser()
+    def hmdm_annotation_args(self):
+        parser = dme.hmdm_annotation.create_parser()
         return parser
 
-    def card_annotation_run(self, args):
-        dme.card_annotation.main(args)
+    def hmdm_annotation_run(self, args):
+        dme.hmdm_annotation.main(args)
 
-    def wildcard_annotation(self):
-        parser = self.wildcard_annotation_args()
+    def wildhmdm_annotation(self):
+        parser = self.wildhmdm_annotation_args()
         args = parser.parse_args(sys.argv[2:])
-        self.wildcard_annotation_run(args)
+        self.wildhmdm_annotation_run(args)
 
-    def wildcard_annotation_args(self):
-        parser = dme.wildcard_annotation.create_parser()
+    def wildhmdm_annotation_args(self):
+        parser = dme.wildhmdm_annotation.create_parser()
         return parser
 
-    def wildcard_annotation_run(self, args):
-        dme.wildcard_annotation.main(args)
+    def wildhmdm_annotation_run(self, args):
+        dme.wildhmdm_annotation.main(args)
 
     def baits_annotation(self):
         parser = self.baits_annotation_args()
@@ -275,8 +275,8 @@ class MainBase(object):
                             action="store_true", help="removes temporary files")
         parser.add_argument('--local', dest="local_database", action='store_true',
                             help="use local database (default: uses database in executable directory)")
-        parser.add_argument('--include_wildcard', dest="include_wildcard",
-                            action="store_true", help="include wildcard")
+        parser.add_argument('--include_wildhmdm', dest="include_wildhmdm",
+                            action="store_true", help="include wildhmdm")
         parser.add_argument('--include_baits', dest="include_baits",
                             action="store_true", help="include baits")
         parser.add_argument('--mapq', dest="mapq",
@@ -291,7 +291,7 @@ class MainBase(object):
     def bwt_run(self, args):
         obj = BWT(
             args.aligner,
-            args.include_wildcard,
+            args.include_wildhmdm,
             args.include_baits,
             args.read_one,
             args.read_two,

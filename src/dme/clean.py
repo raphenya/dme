@@ -77,7 +77,7 @@ def main(args):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        prog="rgi clean", description="{} - {} - Clean".format(APP_NAME, SOFTWARE_VERSION))
+        prog="dme clean", description="{} - {} - Clean".format(APP_NAME, SOFTWARE_VERSION))
     parser.add_argument('--local', dest="local_database", action="store_true",
                         help="use local database (default: uses database in executable directory)")
     parser.add_argument('--debug', dest="debug",

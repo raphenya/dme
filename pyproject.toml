@@ -22,7 +22,7 @@ dependencies = [
   "pysam",
   "seguid",
   "pytest",
-  "diamond"
+  "diamond",
 ]
 
 [external]
@@ -43,7 +43,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-keywords = ["bacterial drug metabolism", "gene prediction", "dme", "enzyme"]
+keywords = ["bacterial drug metabolism", "gene prediction", "dme", "enzyme", "dme-app", "drug transformation"]
 
 [project.scripts]
 dme = "dme:dme.main"

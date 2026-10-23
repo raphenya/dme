@@ -14,10 +14,10 @@ def main(args):
     version = args.version
     files = glob.glob(os.path.join(args.input_directory, "*"))
     tab_file = os.path.join(
-        working_directory, "wildcard_annotations_v{}.txt".format(version))
+        working_directory, "wildhmdm_annotations_v{}.txt".format(version))
     fasta_file = os.path.join(
-        working_directory, "wildcard_database_v{}.fasta".format(version))
-    all_fasta = os.path.join(working_directory, "wildcard_all.fasta")
+        working_directory, "wildhmdm_database_v{}.fasta".format(version))
+    all_fasta = os.path.join(working_directory, "wildhmdm_all.fasta")
     fastas = {}
     annotations = {}
 
@@ -65,7 +65,7 @@ def main(args):
             fout.write(">{}\n".format(i))
             fout.write("{}\n".format(fastas[i]))
 
-    print("Done writing wildcard_database_v{}.fasta".format(version))
+    print("Done writing wildhmdm_database_v{}.fasta".format(version))
 
 
 def get_model(input_directory):
@@ -86,13 +86,13 @@ def get_model(input_directory):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        prog="rgi wildcard_annotation", description='Creates card annotations for RGI BWT from Variants or Wilcard data')
+        prog="rgi wildhmdm_annotation", description='Creates HMDM annotations for RGI BWT from Variants or WildHMDM data')
     parser.add_argument('-i', '--input_directory', dest="input_directory",
-                        required=True, help="input directory for wildcard")
+                        required=True, help="input directory for wildhmdm")
     parser.add_argument('-v', '--version', dest="version", required=True,
-                        help="specify version downloaded for wildcard / variants")
-    parser.add_argument('-j', '--card_json', dest="card_json",
-                        required=True, help="card.json file")
+                        help="specify version downloaded for wildhmdm / variants")
+    parser.add_argument('-j', '--hmdm_json', dest="hmdm_json",
+                        required=True, help="hmdm.json file")
     return parser
 
 
