@@ -4,17 +4,18 @@ import glob
 from multiprocessing import Pool
 import time
 import statistics
-from Bio import SeqIO, Seq
+from Bio import SeqIO
+from Bio.Seq import Seq
 import gzip
 
 
 class BWT(object):
     """
-    Class to align metagenomic reads to CARD and wildCARD reference using bwa or bowtie2 and
+    Class to align metagenomic reads to HMDM and wildHMDM reference using bwa or bowtie2 and
     provide reports (gene, allele report and read level reports).
     """
 
-    def __init__(self, aligner, include_wildcard, include_baits, read_one, read_two, threads, output_file, debug, clean, local_database, mapq, mapped, coverage):
+    def __init__(self, aligner, include_wildhmdm, include_baits, read_one, read_two, threads, output_file, debug, clean, local_database, mapq, mapped, coverage):
         """Creates BWT object."""
         self.aligner = aligner
         self.read_one = read_one
@@ -25,7 +26,7 @@ class BWT(object):
         self.local_database = local_database
         self.db = path
         self.data = data_path
-        self.include_wildcard = include_wildcard
+        self.include_wildhmdm = include_wildhmdm
         self.include_baits = include_baits
 
         self.mapq = mapq
@@ -39,14 +40,10 @@ class BWT(object):
         # index dbs
         self.indecies_directory = os.path.join(self.db, "bwt")
 
-        logger.info("card")
-        self.reference_genome = os.path.join(self.data, "card_reference.fasta")
-        self.index_directory_bowtie2 = os.path.join(
-            self.db, self.indecies_directory, "card_reference", "{}".format("bowtie2"))
+        logger.info("hmdm")
+        self.reference_genome = os.path.join(self.data, "hmdm_reference.fasta")
         self.index_directory_kma = os.path.join(
-            self.db, self.indecies_directory, "card_reference", "{}".format("kma"))
-        self.index_directory_bwa = os.path.join(
-            self.db, self.indecies_directory, "card_reference", "{}".format("bwa"))
+            self.db, self.indecies_directory, "hmdm_reference", "{}".format("kma"))
 
         if self.include_baits == True:
             logger.info("baits")
@@ -57,15 +54,15 @@ class BWT(object):
             self.index_directory_bwa_baits = os.path.join(
                 self.db, self.indecies_directory, "baits_reference", "{}".format("bwa_baits"))
 
-        # card and variants
-        if self.include_wildcard == True:
-            logger.info("card variants")
+        # hmdm and variants
+        if self.include_wildhmdm == True:
+            logger.info("wildhmdm")
             self.reference_genome = os.path.join(
-                self.data, "card_wildcard_reference.fasta")
+                self.data, "hmdm_wildhmdm_reference.fasta")
             self.index_directory_bowtie2 = os.path.join(
-                self.db, self.indecies_directory, "card_wildcard_reference", "{}".format("bowtie2"))
+                self.db, self.indecies_directory, "hmdm_wildhmdm_reference", "{}".format("bowtie2"))
             self.index_directory_bwa = os.path.join(
-                self.db, self.indecies_directory, "card_wildcard_reference", "{}".format("bwa"))
+                self.db, self.indecies_directory, "hmdm_wildhmdm_reference", "{}".format("bwa"))
 
         # outputs
         self.working_directory = os.path.join(os.getcwd())
@@ -99,8 +96,8 @@ class BWT(object):
             self.working_directory, "{}.baits_reads_count.temp.txt".format(self.output_file))
         self.reads_baits_count = os.path.join(
             self.working_directory, "{}.reads_baits_count.temp.txt".format(self.output_file))
-        self.aro_term_reads = os.path.join(
-            self.working_directory, "{}.aro_term_reads.temp.txt".format(self.output_file))
+        self.hmdm_term_reads = os.path.join(
+            self.working_directory, "{}.hmdm_term_reads.temp.txt".format(self.output_file))
 
         self.output_tab = os.path.join(
             self.working_directory, "{}.temp.txt".format(self.output_file))
@@ -129,18 +126,18 @@ class BWT(object):
             self.working_directory, "{}.reads_mapping_data.temp.json".format(self.output_file))
 
         # map baits to complete genes
-        self.baits_card_sam = os.path.join(
-            self.working_directory, "{}.baits_card.temp.sam".format(self.output_file))
-        self.baits_card_bam = os.path.join(
-            self.working_directory, "{}.baits_card.temp.bam".format(self.output_file))
-        self.baits_card_tab = os.path.join(
-            self.working_directory, "{}.baits_card.temp.txt".format(self.output_file))
-        self.baits_card_json = os.path.join(
-            self.working_directory, "{}.baits_card.temp.json".format(self.output_file))
-        self.baits_card_data_tab = os.path.join(
-            self.working_directory, "{}.baits_card_data.temp.txt".format(self.output_file))
-        self.card_baits_reads_count_json = os.path.join(
-            self.working_directory, "{}.card_baits_reads_count.temp.json".format(self.output_file))
+        self.baits_hmdm_sam = os.path.join(
+            self.working_directory, "{}.baits_hmdm.temp.sam".format(self.output_file))
+        self.baits_hmdm_bam = os.path.join(
+            self.working_directory, "{}.baits_hmdm.temp.bam".format(self.output_file))
+        self.baits_hmdm_tab = os.path.join(
+            self.working_directory, "{}.baits_hmdm.temp.txt".format(self.output_file))
+        self.baits_hmdm_json = os.path.join(
+            self.working_directory, "{}.baits_hmdm.temp.json".format(self.output_file))
+        self.baits_hmdm_data_tab = os.path.join(
+            self.working_directory, "{}.baits_hmdm_data.temp.txt".format(self.output_file))
+        self.hmdm_baits_reads_count_json = os.path.join(
+            self.working_directory, "{}.hmdm_baits_reads_count.temp.json".format(self.output_file))
 
         self.debug = debug
         self.clean = clean
@@ -222,7 +219,7 @@ class BWT(object):
 
     def align_kma(self, reference_genome, index_directory, output_sam_file):
         """
-        Align paired reads to card or wildcard
+        Align paired reads to hmdm or wildhmdm
         """
         self.check_index(index_directory=index_directory,
                          reference_genome=reference_genome)
@@ -241,7 +238,7 @@ class BWT(object):
 
     def align_kma_interleaved(self, reference_genome, index_directory, output_sam_file):
         """
-        Align paired reads to card or wildcard
+        Align paired reads to hmdm or wildhmdm
         """
         self.check_index(index_directory=index_directory,
                          reference_genome=reference_genome)
@@ -260,7 +257,7 @@ class BWT(object):
 
     def align_bowtie2_unpaired(self, reference_genome, index_directory, output_sam_file):
         """
-        Align unpaired reads to card or wildcard
+        Align unpaired reads to hmdm or wildhmdm
         """
 
         self.check_index(index_directory=index_directory,
@@ -277,7 +274,7 @@ class BWT(object):
 
     def align_bowtie2(self, reference_genome, index_directory, output_sam_file):
         """
-        Align paired reads to card or wildcard
+        Align paired reads to hmdm or wildhmdm
         """
         self.check_index(index_directory=index_directory,
                          reference_genome=reference_genome)
@@ -472,18 +469,18 @@ class BWT(object):
             out.write("Stats for Reference: \n")
             out.write("**********************************************\n")
             out.write("\n")
-            out.write("how many reference terms (or ARO terms): {}\n\n".format(
+            out.write("how many reference terms (or HMDM terms): {}\n\n".format(
                 len(sequences.keys())))
 
             return sequences
 
     def get_model_details(self, by_accession=False):
         """
-        Parse card.json to get each model details
+        Parse hmdm.json to get each model details
         """
         models = {}
         try:
-            with open(os.path.join(self.data, "card.json"), 'r') as jfile:
+            with open(os.path.join(self.data, "hmdm.json"), 'r') as jfile:
                 data = json.load(jfile)
         except Exception as e:
             logger.error("{}".format(e))
@@ -501,27 +498,27 @@ class BWT(object):
                         if taxa not in taxon:
                             taxon.append(taxa)
 
-                for c in data[i]["ARO_category"]:
-                    if data[i]["ARO_category"][c]["category_aro_class_name"] not in categories.keys():
-                        categories[data[i]["ARO_category"][c]
-                                   ["category_aro_class_name"]] = []
-                    if data[i]["ARO_category"][c]["category_aro_name"] not in categories[data[i]["ARO_category"][c]["category_aro_class_name"]]:
-                        categories[data[i]["ARO_category"][c]["category_aro_class_name"]].append(
-                            data[i]["ARO_category"][c]["category_aro_name"])
+                for c in data[i]["HMDM_category"]:
+                    if data[i]["HMDM_category"][c]["category_hmdm_class_name"] not in categories.keys():
+                        categories[data[i]["HMDM_category"][c]
+                                   ["category_hmdm_class_name"]] = []
+                    if data[i]["HMDM_category"][c]["category_hmdm_name"] not in categories[data[i]["HMDM_category"][c]["category_hmdm_class_name"]]:
+                        categories[data[i]["HMDM_category"][c]["category_hmdm_class_name"]].append(
+                            data[i]["HMDM_category"][c]["category_hmdm_name"])
 
                 if by_accession == False:
                     models[data[i]["model_id"]] = {
                         "model_id": data[i]["model_id"],
-                        "ARO_accession": data[i]["ARO_accession"],
+                        "HMDM_accession": data[i]["HMDM_accession"],
                         "model_name": data[i]["model_name"],
                         "model_type": data[i]["model_type"],
                         "categories": categories,
                         "taxon": taxon
                     }
                 else:
-                    models[data[i]["ARO_accession"]] = {
+                    models[data[i]["HMDM_accession"]] = {
                         "model_id": data[i]["model_id"],
-                        "ARO_accession": data[i]["ARO_accession"],
+                        "HMDM_accession": data[i]["HMDM_accession"],
                         "model_name": data[i]["model_name"],
                         "model_type": data[i]["model_type"],
                         "categories": categories,
@@ -541,7 +538,7 @@ class BWT(object):
         )
 
         variants = {}
-        # prevalence_sequence_id	model_id	accession 			species_name			data_type		rgi_criteria	percent_identity
+        # prevalence_sequence_id	model_id	accession 			species_name			data_type		criteria	percent_identity
         # 10687						2882		FBHN01				Campylobacter coli		ncbi_contig		Strict			67.71
         #   0        				1        	2                   3             			4         		5       		6
         '''
@@ -550,7 +547,7 @@ class BWT(object):
 				0: { # ncbi accession
 					data_type: "ncbi_contig",
 					percent_identity: "99.64",
-					rgi_criteria: "Strict",
+					criteria: "Strict",
 					species_name: 'Escherichia coli'
 				}
 			},
@@ -558,13 +555,13 @@ class BWT(object):
 				0: { # ncbi accession
 					data_type: "ncbi_contig",
 					percent_identity: "99.64",
-					rgi_criteria: "Strict",
+					criteria: "Strict",
 					species_name: 'Klebsiella pneumoniae'
 				}
 			},
 		}
 		'''
-        # prevalence_sequence_id	model_id	species_name 		accession 	data_type		rgi_criteria	percent_identity
+        # prevalence_sequence_id	model_id	species_name 		accession 	data_type		criteria	percent_identity
         # 10687						2882		Campylobacter coli	FBHN01		ncbi_contig		Strict			67.71
         # 0							1			2					3			4				5				6
         with open(self.model_species_data_type, 'r') as csvfile:
@@ -578,7 +575,7 @@ class BWT(object):
                                 row[3]:  # accession
                                 {
                                     "data_type": row[4],
-                                    "rgi_criteria": row[5],
+                                    "criteria": row[5],
                                     "percent_identity": row[6],
                                     "species_name": row[2]
                                 }
@@ -595,7 +592,7 @@ class BWT(object):
                                 row[3]:  # accession
                                 {
                                     "data_type": row[4],
-                                    "rgi_criteria": row[5],
+                                    "criteria": row[5],
                                     "percent_identity": row[6],
                                     "species_name": row[2]
                                 }
@@ -607,7 +604,7 @@ class BWT(object):
                             row[3]:  # accession
                             {
                                 "data_type": row[4],
-                                "rgi_criteria": row[5],
+                                "criteria": row[5],
                                 "percent_identity": row[6],
                                 "species_name": row[2]
                             }
@@ -621,7 +618,7 @@ class BWT(object):
         """
         baits = {}
         # 0			1		2		3		4		5		6			7
-        # ProbeID, GeneID, TaxaID, ARO, ProbeSeq, Upstream, Downstream,RevComp
+        # ProbeID, GeneID, TaxaID, HMDM, ProbeSeq, Upstream, Downstream,RevComp
         with open(os.path.join(self.data, "baits-probes-with-sequence-info.txt"), 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=',', quotechar='|')
             for row in reader:
@@ -631,7 +628,7 @@ class BWT(object):
                             "ProbeID": row[0],
                             "GeneID": row[1],
                             "TaxaID": row[2],
-                            "ARO": row[3],
+                            "HMDM": row[3],
                             "ProbeSeq": row[4],
                             "Upstream": row[5],
                             "Downstream": row[6],
@@ -710,7 +707,7 @@ class BWT(object):
 
         os.system(filter_cmd)
 
-        # bedtools bamtobed -i trimmedreadstocardvslamq35l40.bam > trimmedreadstocardvslamq35l40.bed
+        # bedtools bamtobed -i trimmedreadstohmdmvslamq35l40.bam > trimmedreadstohmdmvslamq35l40.bed
         os.system("bedtools bamtobed -i {} > out.bed".format(self.mapped))
 
         extract_cmd = "samtools fastq -1 {read_one} -2 {read_two} {in_bam}".format(
@@ -782,13 +779,13 @@ class BWT(object):
     def find_between(s, start, end):
         return (s.split(start))[1].split(end)[0]
 
-    def probes_stats(self, baits_card):
+    def probes_stats(self, baits_hmdm):
         stats = {}
         baits = {}
         with open(self.baits_mapping_data_tab, "r") as f2:
             reader = csv.reader(f2, delimiter='\t')
             for row in reader:
-                if "ARO" in row[2]:
+                if "HMDM" in row[2]:
                     bait = row[2]
                     read = "{}|{}".format(row[0], row[1])
 
@@ -798,26 +795,26 @@ class BWT(object):
                         if read not in baits[bait]:
                             baits[bait].append(read)
 
-        aro_to_reads = {}
+        hmdm_to_reads = {}
 
         for m in baits:
-            aro = (m.split("|ARO:"))[1].split("|")[0]
-            if "|ARO:{}|".format(aro) in m:
+            hmdm = (m.split("|HMDM:"))[1].split("|")[0]
+            if "|HMDM:{}|".format(hmdm) in m:
                 for r in baits[m]:
-                    if aro in aro_to_reads.keys():
-                        if r not in aro_to_reads[aro]:
-                            aro_to_reads[aro].append(r)
+                    if hmdm in hmdm_to_reads.keys():
+                        if r not in hmdm_to_reads[hmdm]:
+                            hmdm_to_reads[hmdm].append(r)
                     else:
-                        aro_to_reads[aro] = [r]
+                        hmdm_to_reads[hmdm] = [r]
 
-        with open(self.aro_term_reads, "w") as tab_out3:
+        with open(self.hmdm_term_reads, "w") as tab_out3:
             writer = csv.writer(tab_out3, delimiter='\t', dialect='excel')
             writer.writerow([
-                "ARO",
+                "HMDM",
                 "Number of Mapped Reads to baits"
             ])
-            for aro in aro_to_reads:
-                writer.writerow([aro, len(aro_to_reads[aro])])
+            for hmdm in hmdm_to_reads:
+                writer.writerow([hmdm, len(hmdm_to_reads[hmdm])])
 
         with open(self.baits_mapping_data_json, "w") as outfile:
             json.dump(baits, outfile)
@@ -851,9 +848,9 @@ class BWT(object):
                 probe_reads_count[row[0]] = row[1]
 
         data_out = {}
-        for i in baits_card:
+        for i in baits_hmdm:
             data_out[i] = {}
-            for k in baits_card[i]:
+            for k in baits_hmdm[i]:
                 probe_dict = k.split("|")
                 probe = "|".join(probe_dict[:-1])
                 if probe in probe_reads_count.keys():
@@ -861,7 +858,7 @@ class BWT(object):
                 else:
                     data_out[i].update({k: 0})
 
-        with open(self.card_baits_reads_count_json, "w") as af:
+        with open(self.hmdm_baits_reads_count_json, "w") as af:
             af.write(json.dumps(data_out, sort_keys=True))
 
         with open(self.reads_baits_count, "w") as tab_out2:
@@ -878,14 +875,14 @@ class BWT(object):
         with open(self.baits_mapping_data_tab, "r") as f2:
             reader = csv.reader(f2, delimiter='\t')
             for row in reader:
-                if "ARO" in row[2]:
+                if "HMDM" in row[2]:
                     term = row[2].split("|")[4]
                     name = row[2].split("|")[5]
                     probe = row[2]
                     probe_ok = False
-                    for k in baits_card.keys():
+                    for k in baits_hmdm.keys():
                         if term in k:
-                            matching = [s for s in baits_card[k] if probe in s]
+                            matching = [s for s in baits_hmdm[k] if probe in s]
                             if matching:
                                 probe_ok = True
 
@@ -897,7 +894,7 @@ class BWT(object):
                             cmd2 = "cat {} | grep -c \"|{}|\"".format(
                                 self.reads_baits_count, term)
                             stats[term] = {
-                                "aro_name": name,
+                                "hmdm_name": name,
                                 "total_baits": int(self.count_probes(cmd)),
                                 "read_count": int(self.count_probes(cmd2)),
                                 "mapped_baits": {
@@ -913,8 +910,8 @@ class BWT(object):
         with open(self.mapping_baits_stats, "w") as tab_out:
             writer = csv.writer(tab_out, delimiter='\t', dialect='excel')
             writer.writerow([
-                "ARO Term",
-                "ARO Accession",
+                "HMDM Term",
+                "HMDM Accession",
                 "Number of Baits",
                 "Number of Mapped Baits with Reads",
                 "Number of Reads Mapped to Baits",
@@ -945,7 +942,7 @@ class BWT(object):
                 try:
                     standard_devitation = statistics.stdev(sample)
                 except Exception as e:
-                    print(stats[i]["aro_name"], sample, e)
+                    print(stats[i]["hmdm_name"], sample, e)
 
                 mean = statistics.mean(sample)
 
@@ -954,7 +951,7 @@ class BWT(object):
                         standard_devitation / mean) * 100
 
                 writer.writerow([
-                    stats[i]["aro_name"],
+                    stats[i]["hmdm_name"],
                     i,
                     baits_count,
                     baits_with_reads_count,
@@ -995,7 +992,7 @@ class BWT(object):
             with open(self.mapping_baits_stats, "r") as f2:
                 reader = csv.reader(f2, delimiter='\t')
                 for row in reader:
-                    if "ARO Term" not in row[0]:
+                    if "HMDM Term" not in row[0]:
                         if accession in row[1]:
                             return row[2], row[3], row[4], row[6]
                 return 0, 0, 0, 0
@@ -1005,7 +1002,7 @@ class BWT(object):
 
     def get_model_id(self, models_by_accession, alignment_hit):
         model_id = ""
-        if alignment_hit[0:22] == "Prevalence_Sequence_ID" or alignment_hit[0:4] == "ARO:":
+        if alignment_hit[0:22] == "Prevalence_Sequence_ID" or alignment_hit[0:5] == "HMDM:":
             model_id = alignment_hit.split("|")[1].split(":")[1]
         else:
             accession = alignment_hit.split("|")[4].split(":")[1]
@@ -1013,7 +1010,7 @@ class BWT(object):
                 model_id = models_by_accession[accession]["model_id"]
             except Exception as e:
                 logger.warning(
-                    "missing aro accession: {} for alignment {} -> {}".format(accession, alignment_hit, e))
+                    "missing hmdm accession: {} for alignment {} -> {}".format(accession, alignment_hit, e))
         return model_id
 
     def get_mutation_details(self):
@@ -1066,7 +1063,7 @@ class BWT(object):
         start = time.time()
         # logger.debug(alignment_hit)
         coverage = self.get_coverage_details(alignment_hit)
-        model_id = self.get_model_id(models_by_accession, alignment_hit)
+        model_id = int(self.get_model_id(models_by_accession, alignment_hit))
 
         try:
             alignments = self.get_alignments(alignment_hit)
@@ -1076,7 +1073,7 @@ class BWT(object):
             for a in alignments:
                 mapq_l.append(int(a["mapq"]))
                 if a["mrnm"] != "=" and a["mrnm"] not in mate_pair:
-                    if "ARO:{}".format(models[model_id]["ARO_accession"]) not in a["mrnm"]:
+                    if "HMDM:{}".format(models[model_id]["HMDM_accession"]) not in a["mrnm"]:
                         mate_pair.append(a["mrnm"])
 
             if len(mapq_l) > 0:
@@ -1090,12 +1087,12 @@ class BWT(object):
             percent_identity = 0.0
             # Genus and species level only (only get first two words)
             observed_in_pathogens = []
-            database = "CARD"
-            reference_allele_source = "CARD curation"
+            database = "HMDM"
+            reference_allele_source = "HMDM curation"
 
-            # if variants and "Resistomes & Variants" in database and "ARO:" not in alignment_hit:
+            # if variants and "Variants" in database and "HMDM:" not in alignment_hit:
             if "Prevalence_Sequence_ID" in alignment_hit:
-                database = "Resistomes & Variants"
+                database = "Variants"
                 # logger.debug("model_id: {}, alignment_hit: {}".format(model_id, alignment_hit))
                 if model_id in variants.keys():
                     _accession = ""
@@ -1116,19 +1113,19 @@ class BWT(object):
                                 observed_in_pathogens.append(
                                     variants[model_id][prevalence_sequence_id][accession]["species_name"].replace('"', ""))
 
-                    if "Resistomes & Variants" in database:
+                    if "Variants" in database:
                         if "ncbi_chromosome" in observed_data_types:
                             observed_in_genomes = "YES"
                         if "ncbi_plasmid" in observed_data_types:
                             observed_in_plasmids = "YES"
 
-                        # get prevalence_sequence_id Prevalence_Sequence_ID:10687|ID:2882|Name:tet(W/N/W)|ARO:3004442
+                        # get prevalence_sequence_id
                         if "Prevalence_Sequence_ID" in alignment_hit:
                             prevalence_sequence_id = alignment_hit.split("|")[
                                 0].split(":")[-1]
                             try:
-                                reference_allele_source = "In silico {rgi_criteria} {percent_identity}% identity".format(
-                                    rgi_criteria=variants[model_id][prevalence_sequence_id][_accession]["rgi_criteria"],
+                                reference_allele_source = "In silico {criteria} {percent_identity}% identity".format(
+                                    criteria=variants[model_id][prevalence_sequence_id][_accession]["criteria"],
                                     percent_identity=variants[model_id][prevalence_sequence_id][_accession]["percent_identity"],
                                 )
                                 percent_identity = float(
@@ -1148,17 +1145,17 @@ class BWT(object):
                 # logger.debug("model_id: {}, alignment_hit: {}".format(model_id, alignment_hit))
                 observed_in_pathogens = models[model_id]["taxon"]
                 # logger.debug(coverage)
-                # assumption card canonical
+                # assumption hmdm canonical
                 percent_identity = 100.0
 
             # check all clases categories
             resistomes = models[model_id]["categories"]
-            if "AMR Gene Family" not in resistomes.keys():
-                resistomes["AMR Gene Family"] = []
+            if "Gene Family" not in resistomes.keys():
+                resistomes["Gene Family"] = []
             if "Drug Class" not in resistomes.keys():
                 resistomes["Drug Class"] = []
-            if "Resistance Mechanism" not in resistomes.keys():
-                resistomes["Resistance Mechanism"] = []
+            if "Mechanism" not in resistomes.keys():
+                resistomes["Mechanism"] = []
 
             stop = time.time()
             elapsed = stop - start
@@ -1166,7 +1163,7 @@ class BWT(object):
                 "time lapsed: {} - {}".format(format(elapsed, '.3f'), alignment_hit))
             # self.async_print(alignment_hit, start, stop, elapsed)
             number_of_mapped_baits, number_of_mapped_baits_with_reads, average_bait_coverage, bait_coverage_coefficient_of_variation = self.baits_reads_counts(
-                models[model_id]["ARO_accession"])
+                models[model_id]["HMDM_accession"])
 
             consensus_sequence_dna = ""
             consensus_sequence_protein = ""
@@ -1187,15 +1184,18 @@ class BWT(object):
                         input_seq = ''.join([input_seq, 'NN']) if trailing_bases == 1 else ''.join(
                             [input_seq, 'N'])
 
-                    try:
-                        consensus_sequence_protein = Seq.translate(
-                            input_seq, to_stop=False, table=11, cds=True)
-                    except Exception as e:
-                        consensus_sequence_protein = Seq.translate(
-                            input_seq, to_stop=False, table=11, cds=False)
+                    # try:
+                    #     consensus_sequence_protein = Seq.translate(
+                    #         input_seq, to_stop=True, table=11, cds=False)
+                    # except Exception as e:
+                    #     consensus_sequence_protein = Seq.translate(
+                    #         input_seq, to_stop=True, table=11, cds=False)
 
-                    if trailing_bases:
-                        consensus_sequence_protein = consensus_sequence_protein[:-1]
+                    consensus_sequence_protein = self.get_best_orf(
+                        consensus_sequence_dna)
+
+                    # if trailing_bases:
+                    #     consensus_sequence_protein = consensus_sequence_protein[:-1]
 
                     if alignment_hit in read_coverage.keys():
                         read_coverage_depth = read_coverage[alignment_hit]["depth"]
@@ -1211,7 +1211,7 @@ class BWT(object):
             return {
                 "id": alignment_hit,
                 "cvterm_name": models[model_id]["model_name"],
-                "aro_accession": models[model_id]["ARO_accession"],
+                "hmdm_accession": models[model_id]["HMDM_accession"],
                 "model_type": models[model_id]["model_type"],
                 "database": database,
                 "reference_allele_source": reference_allele_source,
@@ -1239,7 +1239,7 @@ class BWT(object):
                     "sequence_length": "{}".format(coverage[alignment_hit]["length"])
                 },
                 "mutation": "N/A",
-                "resistomes": resistomes, "predicted_pathogen": "N/A",
+                "resistomes": resistomes, "predicted_taxon": "N/A",
                 "depth": read_coverage_depth,  # get from *.sam.temp.res file when using kma
                 "snps": snps,  # get from vcf file
                 "consensus_sequence_dna": consensus_sequence_dna,  # get from *.sam.temp.fsa
@@ -1263,22 +1263,22 @@ class BWT(object):
 
     def get_summary(self):
         """
-        This function uses the following TAB-delimited files:
-                <filename>.coverage_all_positions.summary.txt,
-                <filename>.txt,
-                <filename>.seqs.txt
+        This function uses the following TAB - delimited files:
+                <filename > .coverage_all_positions.summary.txt,
+                <filename > .txt,
+                <filename > .seqs.txt
 
         ------------------------------------------------------------------
-        <filename>.txt | samtools idxstats
+        <filename > .txt | samtools idxstats
         ------------------------------------------------------------------
         columns:
                         1. reference sequence name
                         2. sequence length
-                        3. # mapped reads
-                        4. # unmapped reads
+                        3.  # mapped reads
+                        4.  # unmapped reads
 
         ------------------------------------------------------------------
-        <filename>.coverage_all_positions.summary.txt | genomeCoverageBed -ibam
+        <filename > .coverage_all_positions.summary.txt | genomeCoverageBed - ibam
         ------------------------------------------------------------------
         columns:
                         1. chromosome (or entire genome)
@@ -1287,26 +1287,26 @@ class BWT(object):
                         4. size of chromosome (or entire genome) in base pairs
                         5. fraction of bases on chromosome (or entire genome) with depth equal to column 2.
 
-        used 1,3,4,5
+        used 1, 3, 4, 5
 
         ------------------------------------------------------------------
-        <filename>.seqs.txt | samtools view
+        <filename > .seqs.txt | samtools view
         ------------------------------------------------------------------
         columns:
-                        1.	QNAME	Query template/pair NAME
+                        1.	QNAME	Query template / pair NAME
                         2.	FLAG	bitwise FLAG
                         3.	RNAME	Reference sequence NAME
-                        4.	POS		1-based leftmost POSition/coordinate of clipped sequence
-                        5.	MAPQ	MAPping Quality (Phred-scaled)
+                        4.	POS		1 - based leftmost POSition / coordinate of clipped sequence
+                        5.	MAPQ	MAPping Quality(Phred - scaled)
                         6.	CIGAR	extended CIGAR string
-                        7.	MRNM	Mate Reference sequence NaMe (`=' if same as RNAME)
-                        8.	MPOS	1-based Mate POSistion
-                        9.	TLEN	inferred Template LENgth (insert size)
+                        7.	MRNM	Mate Reference sequence NaMe(`=' if same as RNAME)
+                        8.	MPOS	1 - based Mate POSistion
+                        9.	TLEN	inferred Template LENgth(insert size)
                         10.	SEQ		query SEQuence on the same strand as the reference
-                        11.	QUAL	query QUALity (ASCII-33 gives the Phred base quality)
-                        12+. OPT	variable OPTional fields in the format TAG:VTYPE:VALUE
+                        11.	QUAL	query QUALity(ASCII - 33 gives the Phred base quality)
+                        12 + . OPT	variable OPTional fields in the format TAG: VTYPE: VALUE
 
-        used 1,2,3,4,5, and 7
+        used 1, 2, 3, 4, 5, and 7
 
         """
         summary = []
@@ -1330,7 +1330,7 @@ class BWT(object):
             logger.info("get_consensus_sequence ...")
             consensus_sequence = self. get_consensus_sequence()
 
-        if self.include_wildcard:
+        if self.include_wildhmdm:
             logger.info("get_variant_details ...")
             variants = self.get_variant_details()
             # debug
@@ -1363,14 +1363,14 @@ class BWT(object):
             writer = csv.writer(tab_out, delimiter='\t', dialect='excel')
             writer.writerow([
                 "Reference Sequence",
-                "ARO Term",
-                "ARO Accession",
+                "HMDM Term",
+                "HMDM Accession",
                 "Reference Model Type",
                 "Reference DB",
                 "Reference Allele Source",
-                "Resistomes & Variants: Observed in Genome(s)",
-                "Resistomes & Variants: Observed in Plasmid(s)",
-                "Resistomes & Variants: Observed Pathogen(s)",
+                "Variants: Observed in Genome(s)",
+                "Variants: Observed in Plasmid(s)",
+                "Variants: Observed Taxa",
                 "Completely Mapped Reads",
                 "Mapped Reads with Flanking Sequence",
                 "All Mapped Reads",
@@ -1384,13 +1384,13 @@ class BWT(object):
                 "Mate Pair Linkage",
                 "Reference Length",
                 # "Mutation",
-                "AMR Gene Family",
+                "Gene Family",
                 "Drug Class",
-                "Resistance Mechanism",
+                "Mechanism",
                 "Depth",  # get from *.sam.temp.res file when using kma
                 "SNPs",  # get from vcf file
                 "Consensus Sequence DNA",  # get from *.sam.temp.fsa
-                # ,"Predicted Pathogen"
+                # ,"Predicted Taxon"
                 "Consensus Sequence Protein"
             ])
             for r in summary:
@@ -1398,7 +1398,7 @@ class BWT(object):
                     writer.writerow([
                         r["id"],
                         r["cvterm_name"],
-                        r["aro_accession"],
+                        r["hmdm_accession"],
                         r["model_type"],
                         r["database"],
                         r["reference_allele_source"],
@@ -1418,17 +1418,17 @@ class BWT(object):
                         "; ".join(r["mate_pair"]),
                         r["reference"]["sequence_length"],
                         # r["mutation"],
-                        "; ".join(r["resistomes"]["AMR Gene Family"]),
+                        "; ".join(r["resistomes"]["Gene Family"]),
                         "; ".join(r["resistomes"]["Drug Class"]),
-                        # ,r["predicted_pathogen"]
-                        "; ".join(r["resistomes"]["Resistance Mechanism"]
+                        # ,r["predicted_taxon"]
+                        "; ".join(r["resistomes"]["Mechanism"]
                                   ), r["depth"], r["snps"], r["consensus_sequence_dna"], r["consensus_sequence_protein"]
                     ])
 
         # wrtie tab-delimited gene_mapping_data
         mapping_summary = {}
         alleles_mapped = []
-        index = "aro_accession"
+        index = "hmdm_accession"
         range_of_reference_allele_source = []
         for r in summary:
             if r:
@@ -1437,7 +1437,7 @@ class BWT(object):
                     mapping_summary[r[index]] = {
                         "id": [],
                         "cvterm_name": [],
-                        "aro_accession": [],
+                        "hmdm_accession": [],
                         "model_type": [],
                         "database": [],
                         "alleles_mapped": [],
@@ -1457,16 +1457,16 @@ class BWT(object):
                         "bait_coverage_coefficient_of_variation": [],
                         "mate_pair": [],
                         "reference_sequence_length": [],
-                        "AMR Gene Family": [],
+                        "Gene Family": [],
                         "Drug Class": [],
-                        "Resistance Mechanism": []
+                        "Mechanism": []
                     }
 
                     mapping_summary[r[index]]["id"].append(r["id"])
                     mapping_summary[r[index]]["cvterm_name"].append(
                         r["cvterm_name"])
-                    mapping_summary[r[index]]["aro_accession"].append(
-                        r["aro_accession"])
+                    mapping_summary[r[index]]["hmdm_accession"].append(
+                        r["hmdm_accession"])
                     mapping_summary[r[index]]["model_type"].append(
                         r["model_type"])
                     mapping_summary[r[index]]["database"].append(r["database"])
@@ -1513,15 +1513,15 @@ class BWT(object):
                                 mapping_summary[r[index]]["mate_pair"].append(
                                     "{}".format(m.split("|")[5]))
 
-                    for a in r["resistomes"]["AMR Gene Family"]:
-                        mapping_summary[r[index]]["AMR Gene Family"].append(a)
+                    for a in r["resistomes"]["Gene Family"]:
+                        mapping_summary[r[index]]["Gene Family"].append(a)
 
                     for d in r["resistomes"]["Drug Class"]:
                         mapping_summary[r[index]]["Drug Class"].append(d)
 
-                    for c in r["resistomes"]["Resistance Mechanism"]:
+                    for c in r["resistomes"]["Mechanism"]:
                         mapping_summary[r[index]
-                                        ]["Resistance Mechanism"].append(c)
+                                        ]["Mechanism"].append(c)
 
                 else:
                     if r["model_type"] not in mapping_summary[r[index]]["model_type"]:
@@ -1576,32 +1576,32 @@ class BWT(object):
                                 mapping_summary[r[index]]["mate_pair"].append(
                                     "{}".format(m.split("|")[5]))
 
-                    for a in r["resistomes"]["AMR Gene Family"]:
-                        if a not in mapping_summary[r[index]]["AMR Gene Family"]:
+                    for a in r["resistomes"]["Gene Family"]:
+                        if a not in mapping_summary[r[index]]["Gene Family"]:
                             mapping_summary[r[index]
-                                            ]["AMR Gene Family"].append(a)
+                                            ]["Gene Family"].append(a)
 
                     for d in r["resistomes"]["Drug Class"]:
                         if d not in mapping_summary[r[index]]["Drug Class"]:
                             mapping_summary[r[index]]["Drug Class"].append(d)
 
-                    for c in r["resistomes"]["Resistance Mechanism"]:
-                        if c not in mapping_summary[r[index]]["Resistance Mechanism"]:
+                    for c in r["resistomes"]["Mechanism"]:
+                        if c not in mapping_summary[r[index]]["Mechanism"]:
                             mapping_summary[r[index]
-                                            ]["Resistance Mechanism"].append(c)
+                                            ]["Mechanism"].append(c)
 
         with open(self.gene_mapping_data_tab, "w") as tab_out:
             writer = csv.writer(tab_out, delimiter='\t', dialect='excel')
             writer.writerow([
-                "ARO Term",
-                "ARO Accession",
+                "HMDM Term",
+                "HMDM Accession",
                 "Reference Model Type",
                 "Reference DB",
                 "Alleles with Mapped Reads",
-                "Reference Allele(s) Identity to CARD Reference Protein (%)",
-                "Resistomes & Variants: Observed in Genome(s)",
-                "Resistomes & Variants: Observed in Plasmid(s)",
-                "Resistomes & Variants: Observed Pathogen(s)",
+                "Reference Allele(s) Identity to HMDM Reference Protein (%)",
+                "Variants: Observed in Genome(s)",
+                "Variants: Observed in Plasmid(s)",
+                "Variants: Observed Taxon(s)",
                 "Completely Mapped Reads",
                 "Mapped Reads with Flanking Sequence",
                 "All Mapped Reads",
@@ -1616,9 +1616,9 @@ class BWT(object):
                 "Number of reads mapping to baits and mapping to complete gene (%)",
                 "Mate Pair Linkage (# reads)",
                 "Reference Length",
-                "AMR Gene Family",
+                "Gene Family",
                 "Drug Class",
-                "Resistance Mechanism"
+                "Mechanism"
             ])
             am = {item: alleles_mapped.count(item) for item in alleles_mapped}
 
@@ -1704,9 +1704,9 @@ class BWT(object):
                     "; ".join(mate_pairs),
                     "; ".join(mapping_summary[i]
                               ["reference_sequence_length"]),
-                    "; ".join(mapping_summary[i]["AMR Gene Family"]),
+                    "; ".join(mapping_summary[i]["Gene Family"]),
                     "; ".join(mapping_summary[i]["Drug Class"]),
-                    "; ".join(mapping_summary[i]["Resistance Mechanism"])
+                    "; ".join(mapping_summary[i]["Mechanism"])
                 ])
 
     def check_index(self, index_directory, reference_genome):
@@ -1764,6 +1764,30 @@ class BWT(object):
                 logger.info("index already exists for reference: {} using aligner: {}".format(
                     reference_genome, self.aligner))
 
+    def get_best_orf(self, sequence):
+        record_seq = Seq(sequence)
+        best_pro = ""
+        best_info = {}
+
+        # Loop through forward (+1) and reverse complement (-1) strands
+        for strand, nuc in [(+1, record_seq), (-1, record_seq.reverse_complement())]:
+            for frame in range(3):
+                length = 3 * ((len(nuc) - frame) // 3)  # Whole codons only
+                translated = nuc[frame: frame + length].translate()
+
+                # Split by stop codons (*) to find open reading frames
+                for i, pro in enumerate(translated.split("*")):
+                    if len(pro) > len(best_pro):
+                        best_pro = pro
+                        best_info = {"strand": strand,
+                                     "frame": frame, "sequence": pro}
+        logger.debug(
+            f"Best ORF: {best_info['sequence']} (Length: {len(best_pro)}, Strand:"
+            f" {best_info['strand']}, Frame: {best_info['frame']})"
+        )
+
+        return best_info['sequence']
+
     def run(self):
         """
         Align reads to reference genomes and report
@@ -1772,30 +1796,15 @@ class BWT(object):
         logger.info("inputs")
         logger.info(json.dumps(self.__dict__, indent=2))
 
-    # check index / create index / align
+        # check index / create index / align
         logger.info("align using {}".format(self.aligner))
 
-        if self.aligner == "bowtie2":
-            if self.read_two == None:
-                self.align_bowtie2_unpaired(reference_genome=self.reference_genome,
-                                            index_directory=self.index_directory_bowtie2, output_sam_file=self.output_sam_file)
-            else:
-                self.align_bowtie2(reference_genome=self.reference_genome,
-                                   index_directory=self.index_directory_bowtie2, output_sam_file=self.output_sam_file)
-        elif self.aligner == "kma":
-            if self.read_two == None:
-                self.align_kma_interleaved(reference_genome=self.reference_genome,
-                                           index_directory=self.index_directory_kma, output_sam_file=self.output_sam_file)
-            else:
-                self.align_kma(reference_genome=self.reference_genome,
-                               index_directory=self.index_directory_kma, output_sam_file=self.output_sam_file)
+        if self.read_two == None:
+            self.align_kma_interleaved(reference_genome=self.reference_genome,
+                                       index_directory=self.index_directory_kma, output_sam_file=self.output_sam_file)
         else:
-            if self.read_two == None:
-                self.align_bwa_single_end_mapping(
-                    reference_genome=self.reference_genome, index_directory=self.index_directory_bwa, output_sam_file=self.output_sam_file)
-            else:
-                self.align_bwa_paired_end_mapping(
-                    reference_genome=self.reference_genome, index_directory=self.index_directory_bwa, output_sam_file=self.output_sam_file)
+            self.align_kma(reference_genome=self.reference_genome,
+                           index_directory=self.index_directory_kma, output_sam_file=self.output_sam_file)
 
         # convert SAM file to BAM file
         logger.info("convert SAM file to BAM file")
@@ -1841,39 +1850,39 @@ class BWT(object):
             self.align_bowtie2_baits_to_genes(
                 reference_genome=self.reference_genome,
                 index_directory=self.index_directory_bowtie2,
-                output_sam_file=self.baits_card_sam
+                output_sam_file=self.baits_hmdm_sam
             )
 
             logger.info("convert SAM file to BAM file")
             self.convert_sam_to_bam(
-                input_sam_file=self.baits_card_sam, output_bam_file=self.baits_card_bam)
+                input_sam_file=self.baits_hmdm_sam, output_bam_file=self.baits_hmdm_bam)
 
             os.system("samtools view -F4 --threads {threads} {input_bam} | cut -f 1,2,3 | sort -s -n -k 1,1 > {output_tab}".format(
                 threads=self.threads,
-                input_bam=self.baits_card_bam,
-                output_tab=self.baits_card_data_tab
+                input_bam=self.baits_hmdm_bam,
+                output_tab=self.baits_hmdm_data_tab
             ))
 
-            baits_card = {}
-            with open(self.baits_card_data_tab, "r") as f2:
+            baits_hmdm = {}
+            with open(self.baits_hmdm_data_tab, "r") as f2:
                 reader = csv.reader(f2, delimiter='\t')
                 for row in reader:
                     gene = row[2]
                     bait = "{}|{}".format(row[0], row[1])
-                    if gene not in baits_card.keys():
-                        baits_card[gene] = [bait]
+                    if gene not in baits_hmdm.keys():
+                        baits_hmdm[gene] = [bait]
                     else:
-                        baits_card[gene].append(bait)
+                        baits_hmdm[gene].append(bait)
 
             # write json
-            with open(self.baits_card_json, "w") as af:
-                af.write(json.dumps(baits_card, sort_keys=True))
+            with open(self.baits_hmdm_json, "w") as af:
+                af.write(json.dumps(baits_hmdm, sort_keys=True))
 
-            with open(self.baits_card_tab, "w") as tab_out:
+            with open(self.baits_hmdm_tab, "w") as tab_out:
                 writer = csv.writer(tab_out, delimiter='\t', dialect='excel')
                 writer.writerow(["Gene", "Number of baits mapped to gene"])
-                for g in baits_card:
-                    writer.writerow([g, len(baits_card[g])])
+                for g in baits_hmdm:
+                    writer.writerow([g, len(baits_hmdm[g])])
 
             # map reads to baits
             logger.debug("map reads to baits...")
@@ -1894,7 +1903,7 @@ class BWT(object):
 
             # get stats
             logger.debug("get baits statistics")
-            self.probes_stats(baits_card=baits_card)
+            self.probes_stats(baits_hmdm=baits_hmdm)
 
         # get summary
         logger.info("get summary")

@@ -42,11 +42,25 @@ class MainBase(object):
                main     Runs dme application
                tab      Creates a Tab-delimited from dme results
 
+               ---------------------------------------------------------------------------------------
+               Metagenomic
+               ---------------------------------------------------------------------------------------
+
+               bwt     Runs dme application using short-read sequences
+               
+               ---------------------------------------------------------------------------------------
+               Annotations
+               ---------------------------------------------------------------------------------------
+               hmdm_annotation       Create fasta files with annotations from hmdm.json
+               wildhmdm_annotation   Create fasta files with annotations from variants
+               baits_annotation      Create fasta files with annotations from baits (experimental)
+               remove_duplicates     Removes duplicate sequences (experimental)
+               
                '''
 
         parser = argparse.ArgumentParser(prog="dme", description='{} - {}'.format(
             APP_NAME, _DISTRIBUTION_METADATA['Version']), epilog=SOFTWARE_SUMMARY, usage=USAGE)
-        parser.add_argument('command', choices=['main', 'tab', 'load', 'auto_load', 'clean', 'database'],
+        parser.add_argument('command', choices=['main', 'tab', 'load', 'auto_load', 'clean', 'database', 'bwt', 'hmdm_annotation', 'wildhmdm_annotation'],
                             help='Subcommand to run')
 
         if api == False:
@@ -258,13 +272,13 @@ class MainBase(object):
 
     def bwt_args(self):
         parser = argparse.ArgumentParser(
-            prog="dme bwt", description='Aligns metagenomic reads to HMDM and wildHMDM reference using bowtie or bwa and provide reports.')
+            prog="dme bwt", description='Aligns metagenomic reads to HMDM and wildHMDM reference using kma and provide reports.')
         parser.add_argument('-1', '--read_one', required=True,
                             help="raw read one (qc and trimmied)")
         parser.add_argument('-2', '--read_two',
                             help="raw read two (qc and trimmied)")
         parser.add_argument('-a', '--aligner', default="kma",
-                            choices=['bowtie2', 'bwa', 'kma'], help="aligner")
+                            choices=['kma'], help="aligner")
         parser.add_argument('-n', '--threads', dest="threads", type=int, default=self.cpu_count,
                             help="number of threads (CPUs) to use (default={})".format(self.cpu_count))
         parser.add_argument('-o', '--output_file', dest="output_file",
