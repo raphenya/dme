@@ -128,7 +128,7 @@ def get_versions():
 
 def valid_version(s):
     msg = "Not a version: '{0}'.".format(s)
-    pattern = re.compile('^\s*([\d.]).([\d.]).([\d.])$')
+    pattern = re.compile(r'^\s*(\d+)\.(\d+)\.(\d+)$')
     if pattern.match(s) is not None:
         return s
     else:
