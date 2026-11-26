@@ -34,11 +34,43 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y ncbi-blast+
     - name: Install Prodigal
       run: sudo apt-get update && sudo apt-get install -y prodigal
-    - name: Install KMA
+    - name: Install BWT dependencies
       run: |
-        echo "install kma ..."
+        echo "install jellyfish ..."
+        wget --quiet https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-linux
+        mv jellyfish-linux jellyfish && chmod +x jellyfish && sudo mv jellyfish /usr/bin
+
+        echo "install samtools ..."
+        wget --quiet https://github.com/samtools/samtools/releases/download/1.21/samtools-1.21.tar.bz2
+        tar jxf samtools-1.21.tar.bz2
+        pushd samtools-1.21 && ./configure --enable-silent-rules && make --quiet && sudo mv samtools /usr/bin && popd
+
+        echo "install bamtools ..."
+        wget --quiet https://github.com/pezmaster31/bamtools/archive/v2.5.2.tar.gz
+        tar xzf v2.5.2.tar.gz
+        pushd bamtools-2.5.2/ && mkdir build && cd build && cmake .. && make --quiet && sudo make install --quiet && popd
+
+        echo "install bedtools ..."
+        wget --quiet https://github.com/arq5x/bedtools2/releases/download/v2.31.1/bedtools-2.31.1.tar.gz
+        tar xzf bedtools-2.31.1.tar.gz
+        pushd bedtools2 && make --quiet && sudo mv bin/* /usr/bin && popd
+
         git clone --quiet https://bitbucket.org/genomicepidemiology/kma.git
         pushd kma && make --quiet && sudo mv kma /usr/bin && popd
+    - name: Check versions
+      run: |
+          echo "=====> check versions installed ..."
+          echo `pwd`
+          blastp -version
+          diamond --version
+          jellyfish --version
+          samtools --version
+          bamtools --version
+          bedtools --version
+          kma -v
+          dme main --version
+          prodigal -v
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
