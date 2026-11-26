@@ -25,22 +25,22 @@ class Database(object):
         self.write_fasta_from_json()
         self.write_fasta_from_json("dna")
         # exit("debug...")
-        self.make_blast_database()
-        self.make_blast_database("dna")
-        self.make_diamond_database()
+        self.make_blast_database_protein("protein")
+        self.make_blast_database_dna("dna")
+        self.make_blast_database_strains("strains")
+        self.make_diamond_database("protein")
 
-    def make_blast_database(self, dbtype="protein"):
+    def make_blast_database_protein(self, dbtype="protein"):
         """Build BLAST database from a FASTA file."""
         if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True  \
            and os.path.exists(os.path.join(self.db, "{}.db.phr".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}.db.pin".format(dbtype))) == True \
            and os.path.exists(os.path.join(self.db, "{}.db.psq".format(dbtype))) == True:
-            # logger.info("blast DB exists")
+            logger.info(f"blast DB ({dbtype}) exists.")
             pass
         else:
-            # logger.info("create blast DB.")
             type = "prot"
-            if dbtype == "dna":
-                type = "nucl"
+            logger.info(f"create blast DB ({dbtype}).")
+
             infasta = os.path.join(self.db, f"{dbtype}db.fsa")
             outres = os.path.join(self.db, f"{dbtype}.db")
             os.system(
@@ -48,14 +48,52 @@ class Database(object):
             # response = subprocess.run(
             #     ["makeblastdb", "-in", infasta, "-dbtype", type, "-out", outres, self.stdout])
 
-    def make_diamond_database(self, dbtype="protein"):
-        """Build DIAMOND database from a FASTA file."""
-        if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True \
-                and os.path.exists(os.path.join(self.db, "{}.db.dmnd".format(dbtype))) == True:
-            # logger.info("diamond DB exists")
+    def make_blast_database_dna(self, dbtype="dna"):
+        """Build BLAST database from a FASTA file."""
+        if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True  \
+           and os.path.exists(os.path.join(self.db, "{}.db.nhr".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}.db.nin".format(dbtype))) == True \
+           and os.path.exists(os.path.join(self.db, "{}.db.nsq".format(dbtype))) == True:
+            logger.info(f"blast DB ({dbtype}) exists.")
             pass
         else:
-            # logger.info("create diamond DB.")
+            type = "nucl"
+            logger.info(f"create blast DB ({dbtype}).")
+
+            infasta = os.path.join(self.db, f"{dbtype}db.fsa")
+            outres = os.path.join(self.db, f"{dbtype}.db")
+            os.system(
+                f'makeblastdb -in {infasta} -dbtype {type} -out {outres} {self.stdout}')
+            # response = subprocess.run(
+            #     ["makeblastdb", "-in", infasta, "-dbtype", type, "-out", outres, self.stdout])
+
+    def make_blast_database_strains(self, dbtype="strains"):
+        """Build BLAST database from a FASTA file."""
+        if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(
+                os.path.join(self.db, "{}db.fsa".format(dbtype))) == True \
+                and os.path.exists(os.path.join(self.db, "{}.db.nto".format(dbtype))) == True and os.path.exists(
+            os.path.join(self.db, "{}.db.not".format(dbtype))) == True \
+                and os.path.exists(os.path.join(self.db, "{}.db.ntf".format(dbtype))) == True \
+                and os.path.exists(os.path.join(self.db, "{}.db.njs".format(dbtype))) == True \
+                and os.path.exists(os.path.join(self.db, "{}.db.ndb".format(dbtype))) == True \
+        and os.path.exists(os.path.join(self.db, "{}.db.nal".format(dbtype))) == True:
+            logger.info(f"blast DB ({dbtype}) exists.")
+            pass
+        else:
+            logger.info(f"create blast DB ({dbtype}).")
+            type = "nucl"
+            infasta = os.path.join(self.db, f"{dbtype}db.fsa")
+            outres = os.path.join(self.db, f"{dbtype}.db")
+            os.system(
+                f'makeblastdb -in {infasta} -dbtype {type} -out {outres} {self.stdout}')
+
+    def make_diamond_database(self, dbtype="protein"):
+        """Build DIAMOND database from a FASTA file."""
+        if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True \
+                and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}.db.dmnd".format(dbtype))) == True:
+            logger.info(f"diamond DB ({dbtype}) exists.")
+            pass
+        else:
+            logger.info(f"create diamond DB ({dbtype}).")
             infasta = os.path.join(self.db, f"{dbtype}db.fsa")
             outres = os.path.join(self.db, f"{dbtype}.db")
             os.system(

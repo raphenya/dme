@@ -10,7 +10,7 @@ import subprocess
 class ConvertJsonToTSV(object):
 
     def __init__(self, filepath, homolog_file=None, variant_file=None, overexpression_file=None, rrna_file=None,
-                 local_database=False):
+                 local_database=False, debug=False):
         f_path, f_name = os.path.split(filepath)
         name, ext = os.path.splitext(f_name)
         self.filepath = os.path.join(f_path, "{}.json".format(f_name))
@@ -21,8 +21,15 @@ class ConvertJsonToTSV(object):
         self.overexpression_file = overexpression_file
         self.rrna_file = rrna_file
         self.db = path
+        self.data = data_path
         if local_database:
             self.db = LOCAL_DATABASE
+            self.data = LOCAL_DATABASE
+
+        self.debug = debug
+
+        if self.debug:
+            logger.setLevel(10)
 
     def __repr__(self):
         """Returns ConvertJsonToTSV class full object."""
@@ -66,60 +73,45 @@ class ConvertJsonToTSV(object):
             with open(self.filepath, "w") as outfile:
                 json.dump(data, outfile)
 
-    def make_blast_database_1(self, dbtype="strains"):
-        """Build BLAST database from a FASTA file."""
-        if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(
-                os.path.join(self.db, "{}db.fsa".format(dbtype))) == True \
-                and os.path.exists(os.path.join(self.db, "{}.db.nin".format(dbtype))) == True and os.path.exists(
-            os.path.join(self.db, "{}.db.nhr".format(dbtype))) == True \
-                and os.path.exists(os.path.join(self.db, "{}.db.nsq".format(dbtype))) == True:
-            logger.info("blast DB (strains) exists.")
-        else:
-            logger.info("create blast DB (strains).")
-            type = "nucl"
-            os.system(
-                'makeblastdb -in {} -dbtype {type} -out {}'.format(os.path.join(self.db, "{}db.fsa".format(dbtype)),
-                                                                   os.path.join(
-                                                                       self.db, "{}.db".format(dbtype)),
-                                                                   type=type))
+    def get_strains(self, seqs):
+        """seqs: dict {orf_name: sequence}. Returns {orf_name: [strain, pident]}."""
+        names = list(seqs)
 
-    def get_strain(self, sequence, orf=""):
-        if sequence == "":
-            return "N/A"
-        else:
-            # check if strain db exists if not, create it
-            self.make_blast_database_1("strains")
-            f_path, f_name = os.path.split(self.filepath)
-            output = os.path.join(f_path, "{}.temp.kmers.xml".format(
-                os.path.splitext(f_name)[0]))
-            query_string = '>' + orf + '\n' + str(sequence)
-            # blast sequence against custom strains database
-            blast_command = [
-                "blastn",
-                "-out", output,
-                "-outfmt", "5",
-                "-db", os.path.join(self.db, "{}.db".format("strains")),
-                "-max_target_seqs", "1",
-            ]
-            result = subprocess.run(
-                blast_command,
-                input=query_string,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            stdout, stderr = result.stdout, result.stderr
-            strain = ""
-            percent_identity = ""
-            # read results and return 1 top hit to strains database
-            with open(output, 'r') as result_handle:
-                blast_records = NCBIXML.read(result_handle)
-                for alignment in blast_records.alignments:
-                    for hsp in alignment.hsps:
-                        percent_identity = float(
-                            format(float(hsp.identities * 100) / len(hsp.query), '.2f'))
-                        strain = alignment.hit_def
-            return [strain, percent_identity]
+        # Use numeric IDs so ORF names with spaces don't break qseqid parsing
+        query = "".join(f">q{i}\n{seqs[n]}\n" for i,
+                        n in enumerate(names) if seqs[n])
+
+        results = {n: ["N/A", ""] for n in names}
+        if not query:
+            return results
+
+        cmd = [
+            "blastn", "-task", "megablast",
+            "-db", os.path.join(self.db, "strains.db"),
+            "-outfmt", "6 qseqid stitle pident bitscore",
+            "-max_target_seqs", "5", "-max_hsps", "1",
+            "-evalue", "1e-10",
+            "-num_threads", str(os.cpu_count() or 1),
+        ]
+        logger.info(cmd)
+        out = subprocess.run(cmd, input=query, capture_output=True,
+                             text=True, check=True).stdout
+
+        best = {}
+        for line in out.splitlines():
+            qid, rest = line.split("\t", 1)
+            stitle, pident, bitscore = rest.rsplit("\t", 2)
+            bs = float(bitscore)
+            if qid not in best or bs > best[qid][2]:
+                best[qid] = (stitle, round(float(pident), 2), bs)
+
+        for i, n in enumerate(names):
+            if f"q{i}" in best:
+                s, p, _ = best[f"q{i}"]
+                results[n] = [s, p]
+            elif seqs[n]:
+                results[n] = ["", ""]
+        return results
 
     def run(self):
         if os.path.isfile(self.filepath):
@@ -212,6 +204,15 @@ class ConvertJsonToTSV(object):
                                 1, 2), reverse=True).pop(0)
 
                         ordered = [i for i in ordered]
+
+                        orf_seqs = {
+                            hit["orf_from"]: hit["orf_dna_sequence"]
+                            for hits in dme_data.values()
+                            for hit in hits.values()
+                            if hit["type_match"] in ("Perfect", "Strict")
+                        }
+
+                        orf_strains = self.get_strains(orf_seqs)
 
                         if "orf_dna_sequence" in dme_data[hsp][ordered[0]]:
                             dna = 1
@@ -329,8 +330,10 @@ class ConvertJsonToTSV(object):
                                 strain_percent_identity = ""
                                 # only populate strain information for Perfect and Strict hits
                                 if dme_data[hsp][ordered[0]]["type_match"] in ["Perfect", "Strict"]:
-                                    strain, strain_percent_identity = self.get_strain(
-                                        orf_dna, dme_data[hsp][ordered[0]]["orf_from"])
+                                    strain = orf_strains[dme_data[hsp]
+                                                         [ordered[0]]["orf_from"]][0]
+                                    strain_percent_identity = orf_strains[dme_data[hsp]
+                                                                          [ordered[0]]["orf_from"]][1]
 
                                 match_dict[hsp] = [hsp,
                                                    dme_data[hsp][ordered[0]

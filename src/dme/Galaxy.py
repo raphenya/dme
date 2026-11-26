@@ -18,8 +18,8 @@ class Galaxy(object):
         """
         verify that we have the following files at the specified location:
 
-        # CARD json data file
-        - card.json
+        # HMDM json data file
+        - hmdm.json
 
         # diamond blast
         - protein.db.dmnd
@@ -33,7 +33,7 @@ class Galaxy(object):
         - proteindb.fsa
 
         """
-        needed_files = ['card.json', 'proteindb.fsa', 'protein.db.dmnd',
+        needed_files = ['hmdm.json', 'proteindb.fsa', 'protein.db.dmnd',
                         'protein.db.phr', 'protein.db.pin', 'protein.db.psq']
         found_files = []
 
@@ -57,7 +57,7 @@ class Galaxy(object):
             if not f.startswith('.') and f in needed_files:
                 src_path = os.path.join(self.database, f)
                 dst_path = ""
-                if f in ['card.json']:
+                if f in ['hmdm.json']:
                     dst_path = os.path.join(data_path, f)
                 else:
                     dst_path = os.path.join(path, f)

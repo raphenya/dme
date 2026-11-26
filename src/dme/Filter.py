@@ -98,7 +98,8 @@ class Filter(BaseModel):
                                    file_name, "overexpression")),
                                os.path.join(self.working_directory,
                                             "{}.temp.{}.json".format(file_name, "rrna")),
-                               self.dme_obj.local_database
+                               self.dme_obj.local_database,
+                               self.dme_obj.debug
                                )
         # combine 3 json files
         obj.combine_jsons()

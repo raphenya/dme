@@ -42,10 +42,10 @@ class ORF(object):
         quality = "-n -p single"
 
         minimum_sequence_length, maximum_sequence_length, number_of_sequences = self.min_max_sequence_length()
-        # logger.info(
-        #     f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
-        print(
+        logger.info(
             f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
+        # print(
+        #     f"minimum sequence length: {minimum_sequence_length}, maximun sequence length {maximum_sequence_length}, number of sequences: {number_of_sequences}")
 
         if self.low_quality == True or minimum_sequence_length < 20000:
             quality = "-p meta"
