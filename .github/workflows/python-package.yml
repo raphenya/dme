@@ -57,18 +57,6 @@ jobs:
 
         git clone --quiet https://bitbucket.org/genomicepidemiology/kma.git
         pushd kma && make --quiet && sudo mv kma /usr/bin && popd
-    - name: Check versions
-      run: |
-          echo "=====> check versions installed ..."
-          echo `pwd`
-          blastp -version
-          jellyfish --version
-          samtools --version
-          bamtools --version
-          bedtools --version
-          kma -v
-          dme main --version
-          prodigal -v
 
     - name: Lint with flake8
       run: |
