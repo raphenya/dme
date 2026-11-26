@@ -67,7 +67,7 @@ python3 -m pip install /path/to/dme-1.0.0.tar.gz
 - pyahocorasick 1.1.7+
 - OligoArrayAux 3.8
 - samtools 1.9
-- bamtools 2.5.1
+- bamtools 2.5.3
 - bedtools 2.27.1
 - Jellyfish 2.2.10
 - Bowtie2 2.3.4.3
