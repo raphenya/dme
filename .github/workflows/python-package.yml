@@ -62,7 +62,6 @@ jobs:
           echo "=====> check versions installed ..."
           echo `pwd`
           blastp -version
-          diamond --version
           jellyfish --version
           samtools --version
           bamtools --version
