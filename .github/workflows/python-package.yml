@@ -24,6 +24,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install build tools
+      run: sudo apt-get -qq install -y g++ make
+
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '4.5.1'
+    - run: cmake --version
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -40,7 +49,6 @@ jobs:
       
         sudo apt-get -qq update
         sudo apt-get -qq install -y libtbb-dev libbz2-dev liblzma-dev
-        sudo apt-get -qq install -y cmake g++ make
 
         echo "install jellyfish ..."
         wget --quiet https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-linux
