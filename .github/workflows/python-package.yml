@@ -34,6 +34,11 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y ncbi-blast+
     - name: Install Prodigal
       run: sudo apt-get update && sudo apt-get install -y prodigal
+    - name: Install KMA
+      run: |
+        echo "install kma ..."
+        git clone --quiet https://bitbucket.org/genomicepidemiology/kma.git
+        pushd kma && make --quiet && sudo mv kma /usr/bin && popd
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
