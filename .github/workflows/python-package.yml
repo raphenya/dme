@@ -37,6 +37,11 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y prodigal
     - name: Install BWT dependencies
       run: |
+      
+        sudo apt-get -qq update
+        sudo apt-get -qq install -y libtbb-dev libbz2-dev liblzma-dev
+        sudo apt-get -qq install -y cmake g++ make
+
         echo "install jellyfish ..."
         wget --quiet https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-linux
         mv jellyfish-linux jellyfish && chmod +x jellyfish && sudo mv jellyfish /usr/bin
