@@ -93,7 +93,7 @@ class ConvertJsonToTSV(object):
             "-evalue", "1e-10",
             "-num_threads", str(os.cpu_count() or 1),
         ]
-        logger.info(cmd)
+        # logger.info(cmd)
         out = subprocess.run(cmd, input=query, capture_output=True,
                              text=True, check=True).stdout
 

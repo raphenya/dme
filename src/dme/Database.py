@@ -1,5 +1,6 @@
 import subprocess
 from dme.settings import *
+from pathlib import Path
 
 
 class Database(object):
@@ -68,6 +69,22 @@ class Database(object):
 
     def make_blast_database_strains(self, dbtype="strains"):
         """Build BLAST database from a FASTA file."""
+
+        large_db = False
+
+        # get file size for strains fasta
+        if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))):
+            file_path = Path(os.path.join(self.db, "{}db.fsa".format(dbtype)))
+            # Get size in bytes and convert to GiB (binary GB)
+            size_bytes = file_path.stat().st_size
+            size_gb = size_bytes / (1024 ** 3)
+
+            if size_gb >= 1.0:
+                large_db = True
+
+            logger.info(
+                f"strainsdb is size_gb: {size_gb:.2f}")
+
         if os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(
                 os.path.join(self.db, "{}db.fsa".format(dbtype))) == True \
                 and os.path.exists(os.path.join(self.db, "{}.db.nto".format(dbtype))) == True and os.path.exists(
@@ -75,11 +92,16 @@ class Database(object):
                 and os.path.exists(os.path.join(self.db, "{}.db.ntf".format(dbtype))) == True \
                 and os.path.exists(os.path.join(self.db, "{}.db.njs".format(dbtype))) == True \
                 and os.path.exists(os.path.join(self.db, "{}.db.ndb".format(dbtype))) == True \
-        and os.path.exists(os.path.join(self.db, "{}.db.nal".format(dbtype))) == True:
-            logger.info(f"blast DB ({dbtype}) exists.")
+        and os.path.exists(os.path.join(self.db, "{}.db.nal".format(dbtype))) == True and large_db == True:
+            logger.info(f"blast large_db({large_db}) DB ({dbtype}) exists.")
+            pass
+        elif os.path.isfile(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}db.fsa".format(dbtype))) == True  \
+                and os.path.exists(os.path.join(self.db, "{}.db.nhr".format(dbtype))) == True and os.path.exists(os.path.join(self.db, "{}.db.nin".format(dbtype))) == True \
+                and os.path.exists(os.path.join(self.db, "{}.db.nsq".format(dbtype))) == True and large_db == False:
+            logger.info(f"blast large_db({large_db}) DB ({dbtype}) exists.")
             pass
         else:
-            logger.info(f"create blast DB ({dbtype}).")
+            logger.info(f"create blast large_db({large_db}) DB ({dbtype}).")
             type = "nucl"
             infasta = os.path.join(self.db, f"{dbtype}db.fsa")
             outres = os.path.join(self.db, f"{dbtype}.db")
